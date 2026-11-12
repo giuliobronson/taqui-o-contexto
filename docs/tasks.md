@@ -77,7 +77,7 @@
 
 ## Fase 3 · Autenticação e papéis
 
-- [ ] **T-12 · Login com Google**
+- [x] **T-12 · Login com Google**
   - `GET /auth/login` redireciona para o OAuth do Supabase.
   - `GET /auth/callback` troca o código pela sessão e grava o token num cookie HTTP-only, `Secure`, `SameSite=Lax`.
   - `POST /auth/logout` apaga o cookie.
