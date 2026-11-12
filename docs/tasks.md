@@ -188,12 +188,12 @@
 
 ## Fase 8 · Painel do admin
 
-- [ ] **T-28 · Lista e criação de jogos**
+- [x] **T-28 · Lista e criação de jogos**
   - `GET /admin`: jogos com estado, datas, palavra, membros, palpites e vencedor.
   - `GET/POST /admin/games/new`: palavra (precisa existir no vocabulário), `starts_at`, `ends_at`, código e descrição do cupom; recusar sobreposição de períodos; calcular o ranking ao salvar.
   - **dep:** T-14, T-17
 
-- [ ] **T-29 · Edição, liberação e encerramento**
+- [x] **T-29 · Edição, liberação e encerramento**
   - `GET/POST /admin/games/{id}`: regras de edição por estado (agendado: tudo; ativo: só `ends_at`; encerrado: leitura). Trocar a palavra recalcula o ranking.
   - `POST /admin/games/{id}/unlock`: confirmação com o número de players e watchers.
   - `POST /admin/games/{id}/finish` e `DELETE /admin/games/{id}` (só agendado).
@@ -243,5 +243,4 @@
 
 | Questão | Tarefas bloqueadas |
 |---|---|
-| Origem dos cupons | T-26 |
 | Entre jogos: o próximo começa logo ou espera o `starts_at`? | T-16 (comportamento após o fim antecipado) |

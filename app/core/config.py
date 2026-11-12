@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     app_base_url: str = "http://localhost:8000"
     admin_emails: Annotated[list[str], NoDecode] = Field(default_factory=list)
     timezone: str = "America/Sao_Paulo"
+    # Vocabulary used by new games (pipeline/build_vocabulary.py writes it)
+    vocabulary_version: str = "openai-te3l-1024-v1"
     secure_cookies: bool = False
 
     @field_validator("admin_emails", mode="before")

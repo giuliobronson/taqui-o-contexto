@@ -1,0 +1,2 @@
+{%- set labels = {"scheduled": "Agendado", "locked": "Bloqueado", "open": "Aberto", "finished": "Encerrado"} -%}
+<span class="chip chip-{{ game.status }}">{{ labels[game.status] }}</span>

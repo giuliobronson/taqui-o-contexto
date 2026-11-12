@@ -1,0 +1,78 @@
+{% extends "core/base.html" %}
+{% block title %}Admin · Taqui o Contexto{% endblock %}
+
+{% macro field(name, label, type="text", hint="") %}
+  {% set locked = name not in editable %}
+  <div class="field{% if form.errors[name] %} has-error{% endif %}">
+    <label for="{{ name }}">{{ label }}</label>
+    <input id="{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ form[name] }}"
+           {% if locked %}disabled{% endif %}
+           {% if form.errors[name] %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}
+           autocomplete="off">
+    {% if form.errors[name] %}<p class="field-error" id="{{ name }}-error">{{ form.errors[name] }}</p>
+    {% elif hint %}<p class="muted small">{{ hint }}</p>{% endif %}
+  </div>
+{% endmacro %}
+
+{% block content %}
+<p><a href="/admin" class="muted">← Jogos</a></p>
+
+{% if summary %}
+  {% set game = summary.game %}
+  <section class="admin-head">
+    <h1>Jogo #{{ game.id }}</h1>
+    {% include "admin/_status.html" %}
+  </section>
+  {% if notice %}<p class="message message-ok" role="status">{{ notice }}</p>{% endif %}
+
+  <section class="card admin-facts">
+    <p><strong>{{ summary.players }}</strong> players · <strong>{{ summary.watchers }}</strong> watchers · <strong>{{ summary.guesses }}</strong> palpites</p>
+    {% if game.status == "finished" %}
+      <p>Encerrado em {{ game.finished_at | local_datetime }} ·
+        {% if summary.winner %}vencedor: <strong>{{ summary.winner }}</strong>
+          {% if summary.has_prize %}(cupom entregue){% else %}(<strong>sem cupom: cadastre o código abaixo</strong>){% endif %}
+        {% else %}sem vencedor{% endif %}</p>
+    {% endif %}
+    <div class="admin-actions">
+      {% if game.status == "locked" %}
+        <button class="btn" hx-post="/admin/games/{{ game.id }}/unlock"
+                hx-confirm="Liberar o jogo para {{ summary.players }} players e {{ summary.watchers }} watchers? Palpites e dicas serão abertos e isso não pode ser desfeito.">Liberar jogo</button>
+      {% endif %}
+      {% if game.status in ("locked", "open") %}
+        <button class="btn btn-danger" hx-post="/admin/games/{{ game.id }}/finish"
+                hx-confirm="Encerrar o jogo #{{ game.id }} agora, sem vencedor?">Encerrar jogo</button>
+      {% endif %}
+      {% if game.status == "scheduled" %}
+        <button class="btn btn-danger" hx-delete="/admin/games/{{ game.id }}"
+                hx-confirm="Excluir o jogo #{{ game.id }}?">Excluir jogo</button>
+      {% endif %}
+      {% if game.status != "scheduled" %}
+        <a class="btn btn-ghost" href="{% if game.status == 'finished' %}/games/{{ game.id }}{% else %}/{% endif %}">Ver página do jogo</a>
+      {% endif %}
+    </div>
+  </section>
+{% else %}
+  <h1>Novo jogo</h1>
+{% endif %}
+
+<form method="post" class="card admin-form" novalidate>
+  {% if summary and not editable %}
+    <p class="muted">Jogo encerrado: somente leitura.</p>
+  {% elif summary and summary.game.status in ("locked", "open") %}
+    <p class="muted">Jogo ativo: só o fim e o cupom podem mudar.</p>
+  {% endif %}
+
+  {{ field("secret_word", "Palavra secreta", hint="Precisa estar no vocabulário. Variantes como “Spy x Family” são aceitas.") }}
+  <div class="field-row">
+    {{ field("starts_at", "Início", "datetime-local") }}
+    {{ field("ends_at", "Fim", "datetime-local") }}
+  </div>
+  {{ field("prize_code", "Código do cupom", hint="Entregue ao vencedor. Pode ficar em branco e ser cadastrado depois.") }}
+  {{ field("prize_description", "Descrição do prêmio", hint="Opcional, por exemplo “20% de desconto na loja X”.") }}
+  <p class="muted small">Horários de São Paulo.</p>
+
+  {% if editable %}
+    <button class="btn" type="submit">{% if summary %}Salvar{% else %}Criar jogo{% endif %}</button>
+  {% endif %}
+</form>
+{% endblock %}

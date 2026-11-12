@@ -1,0 +1,45 @@
+{% extends "core/base.html" %}
+{% block title %}Admin · Taqui o Contexto{% endblock %}
+
+{% block content %}
+<section class="admin-head">
+  <h1>Jogos</h1>
+  <a class="btn" href="/admin/games/new">Novo jogo</a>
+</section>
+
+{% if notice %}<p class="message message-ok" role="status">{{ notice }}</p>{% endif %}
+
+{% if games %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th scope="col">Jogo</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Palavra</th>
+        <th scope="col">Período</th>
+        <th scope="col">Membros</th>
+        <th scope="col">Palpites</th>
+        <th scope="col">Vencedor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in games %}
+        {% set game = s.game %}
+        <tr>
+          <td data-label="Jogo"><a href="/admin/games/{{ game.id }}">#{{ game.id }}</a></td>
+          <td data-label="Estado">{% include "admin/_status.html" %}</td>
+          <td data-label="Palavra"><strong>{{ game.secret_word }}</strong></td>
+          <td data-label="Período">{{ game.starts_at | local_datetime }} → {{ game.ends_at | local_datetime }}</td>
+          <td data-label="Membros">{{ s.players }} players · {{ s.watchers }} watchers</td>
+          <td data-label="Palpites">{{ s.guesses }}</td>
+          <td data-label="Vencedor">{{ s.winner or "—" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <section class="card empty-state">
+    <p>Nenhum jogo ainda. Crie o primeiro.</p>
+  </section>
+{% endif %}
+{% endblock %}
