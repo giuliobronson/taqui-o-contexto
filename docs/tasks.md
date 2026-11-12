@@ -102,7 +102,7 @@
 
 ## Fase 4 · Jogos
 
-- [ ] **T-16 · Ciclo de vida do jogo**
+- [x] **T-16 · Ciclo de vida do jogo**
   - `games/service.py`: `current_game()` com as transições preguiçosas do RF-7:
     - ativo vencido (`ends_at` passou) → `finished` sem vencedor;
     - sem ativo e agendado com `starts_at` alcançado → `locked`.
