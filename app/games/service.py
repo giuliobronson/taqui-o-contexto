@@ -79,12 +79,14 @@ async def finish_game(
     now: datetime,
     *,
     winner_id: uuid.UUID | None = None,
+    commit: bool = True,
 ) -> bool:
     """Finish a game atomically. Returns False if it was no longer finishable.
 
     With a winner the game must be open: the conditional UPDATE guarantees that
     when two correct guesses race, only the first one becomes the winner.
     Without a winner (admin action) a locked or open game can be finished.
+    With commit=False the caller commits, so the finish can share a transaction.
     """
     allowed = (GameStatus.OPEN,) if winner_id is not None else ACTIVE_STATUSES
     result = await session.execute(
@@ -95,7 +97,8 @@ async def finish_game(
         .execution_options(synchronize_session=False)
     )
     finished = result.scalar_one_or_none() is not None
-    await session.commit()
+    if commit:
+        await session.commit()
     return finished
 
 
