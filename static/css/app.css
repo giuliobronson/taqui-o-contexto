@@ -4,11 +4,11 @@
   --surface: #fffcf6;
   --surface-muted: #efe6d8;
   --text: #3a3129;
-  --text-muted: #7a6d60;
+  --text-muted: #6b5e52;
   --border: #e2d6c3;
-  --accent: #7c9a83;
+  --accent: #587a61;
   --accent-text: #ffffff;
-  --danger: #c97b7b;
+  --danger: #9c4a4a;
   --radius: 14px;
   --shadow: 0 1px 2px rgb(90 70 40 / 0.06), 0 4px 16px rgb(90 70 40 / 0.05);
   --gutter: 16px;
@@ -365,7 +365,7 @@ h2 {
 
 .rank-players {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--text); /* sits on the pastel bar: muted text would be too faint */
 }
 
 .rank-number {
@@ -462,7 +462,8 @@ h2 {
 
 .link-button {
   margin-left: auto;
-  padding: 4px 6px;
+  min-height: 32px;
+  padding: 4px 8px;
   border: 0;
   background: none;
   color: var(--danger);
@@ -1075,4 +1076,33 @@ h2 {
   .toast {
     transition: none;
   }
+}
+
+/* ---------- Accessibility helpers ---------- */
+
+.skip-link {
+  position: absolute;
+  left: var(--gutter);
+  top: -100px;
+  z-index: 20;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+main:focus {
+  outline: none;
 }

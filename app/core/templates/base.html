@@ -16,6 +16,7 @@
   {% block head %}{% endblock %}
 </head>
 <body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
   <header class="site-header">
     <a class="brand" href="/">Taqui o <span>Contexto</span></a>
     <nav class="site-nav">
@@ -34,7 +35,7 @@
     </nav>
   </header>
 
-  <main class="container">
+  <main class="container" id="main" tabindex="-1">
     {% block content %}{% endblock %}
   </main>
 </body>

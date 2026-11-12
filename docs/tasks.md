@@ -224,7 +224,7 @@
   - Limitar `POST /guesses` e `POST /hints` por usuário e por IP (por exemplo, com slowapi).
   - **dep:** T-20, T-24
 
-- [ ] **T-35 · Acessibilidade**
+- [x] **T-35 · Acessibilidade**
   - Contraste das cores pastéis com o texto, foco visível, rótulos nos campos, modal com foco preso e fechamento por Esc.
   - **dep:** T-33
 
