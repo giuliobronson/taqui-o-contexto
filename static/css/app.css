@@ -1,34 +1,21 @@
 :root {
-  --bg: #faf7f2;
-  --surface: #ffffff;
-  --surface-muted: #f2eee7;
-  --text: #2f2a26;
-  --text-muted: #6f675f;
-  --border: #e4ddd2;
+  /* Warm light theme: beige page, off-white cards. */
+  --bg: #f4ede1;
+  --surface: #fffcf6;
+  --surface-muted: #efe6d8;
+  --text: #3a3129;
+  --text-muted: #7a6d60;
+  --border: #e2d6c3;
   --accent: #7c9a83;
   --accent-text: #ffffff;
   --danger: #c97b7b;
   --radius: 14px;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 4px 16px rgb(0 0 0 / 0.04);
+  --shadow: 0 1px 2px rgb(90 70 40 / 0.06), 0 4px 16px rgb(90 70 40 / 0.05);
   --gutter: 16px;
   --font: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1d1b19;
-    --surface: #272421;
-    --surface-muted: #312d29;
-    --text: #f1ece6;
-    --text-muted: #b2a99f;
-    --border: #3d3833;
-    --accent: #93b39a;
-    --accent-text: #1d1b19;
-    --shadow: none;
-    color-scheme: dark;
-  }
-}
 
 *,
 *::before,
@@ -332,7 +319,7 @@ h2 {
   border-radius: 10px;
   overflow: hidden;
   background: var(--surface-muted);
-  color: #2f2a26;
+  color: var(--text);
 }
 
 /* Coloured bar: its length is the proximity, its colour comes from the rank. */
@@ -361,7 +348,7 @@ h2 {
 
 .rank-players {
   font-size: 0.8rem;
-  color: #6f675f;
+  color: var(--text-muted);
 }
 
 .rank-number {
@@ -369,16 +356,3 @@ h2 {
   font-weight: 700;
 }
 
-@media (prefers-color-scheme: dark) {
-  .rank-row {
-    color: var(--text);
-  }
-
-  .rank-row::before {
-    opacity: 0.35;
-  }
-
-  .rank-players {
-    color: var(--text-muted);
-  }
-}
