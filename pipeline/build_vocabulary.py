@@ -236,6 +236,11 @@ def embed_batch(http: httpx.Client, api_key: str, texts: list[str]) -> list[np.n
         if response.status_code == 200:
             data = sorted(response.json()["data"], key=lambda item: item["index"])
             return [np.asarray(item["embedding"], dtype=np.float32) for item in data]
+        if response.status_code == 429 and "insufficient_quota" in response.text:
+            sys.exit(
+                "A conta da OpenAI está sem créditos. Adicione créditos em "
+                "https://platform.openai.com/settings/organization/billing e rode de novo."
+            )
         if response.status_code in (429, 500, 502, 503, 504):
             wait = 2**attempt
             print(f"  OpenAI respondeu {response.status_code}; nova tentativa em {wait}s")
