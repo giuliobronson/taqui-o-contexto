@@ -90,7 +90,7 @@
   - Se o e-mail estiver em `ADMIN_EMAILS`, marcar `is_admin = true`.
   - **dep:** T-08, T-12
 
-- [ ] **T-14 · Guardas de permissão**
+- [x] **T-14 · Guardas de permissão**
   - `require_admin` e `require_game_role("player" | "watcher")`, devolvendo 401 (não logado) ou 403 (sem permissão).
   - **dep:** T-13, T-16
   - **Pronto quando:** testes cobrem visitante, player, watcher e admin em cada guarda.
