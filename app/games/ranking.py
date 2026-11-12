@@ -3,7 +3,7 @@
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.games.models import Game, Vocabulary, WordRanking
+from app.games.models import Game, Vocabulary, WordForm, WordRanking
 
 
 class SecretWordNotInVocabulary(Exception):
@@ -14,7 +14,18 @@ class SecretWordNotInVocabulary(Exception):
 
 
 def normalize_word(raw: str) -> str:
-    return raw.strip().lower()
+    """Lower-case and collapse whitespace. Accents are kept: "mangá" is not "manga"."""
+    return " ".join(raw.lower().split())
+
+
+async def resolve_word(session: AsyncSession, model_version: str, raw: str) -> str:
+    """Vocabulary word for what a player typed: inflections and variants map to
+    their base word ("casas" → "casa", "spy x family" → "spy family")."""
+    word = normalize_word(raw)
+    mapped = await session.scalar(
+        select(WordForm.word).where(WordForm.model_version == model_version, WordForm.form == word)
+    )
+    return mapped or word
 
 
 async def word_in_vocabulary(session: AsyncSession, model_version: str, word: str) -> bool:

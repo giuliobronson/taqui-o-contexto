@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.clock import local_date
 from app.core.config import get_settings
 from app.games.models import Game, GameStatus
-from app.games.ranking import normalize_word, rank_of
+from app.games.ranking import rank_of, resolve_word
 from app.games.service import finish_game
 from app.guesses.models import Guess
 
@@ -59,7 +59,7 @@ async def submit_guess(
     if game.status != GameStatus.OPEN:
         return GuessResult(Outcome.GAME_FINISHED)
 
-    word = normalize_word(raw_word)
+    word = await resolve_word(session, game.model_version, raw_word)
     if not word:
         return GuessResult(Outcome.EMPTY)
 

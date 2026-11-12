@@ -333,3 +333,50 @@ async def test_finished_game_page_is_public(client, open_game, player, at_noon) 
 async def test_unfinished_game_page_is_hidden(client, open_game, at_noon) -> None:
     assert (await client.get(f"/games/{open_game.id}")).status_code == 404
     assert (await client.get("/games/999999")).status_code == 404
+
+
+# ---------- word forms ----------
+
+
+@pytest.fixture
+async def phrase_game(session, make_game):
+    from app.games.models import WordForm
+
+    words = {**WORDS, "spy family": [0.8, 0.0, 0.2]}
+    session.add_all(Vocabulary(model_version="test", word=w, embedding=v) for w, v in words.items())
+    await session.flush()
+    session.add_all(
+        [
+            WordForm(model_version="test", form="spy x family", word="spy family"),
+            WordForm(model_version="test", form="cafés", word="café"),
+        ]
+    )
+    game = await make_game(
+        status=GameStatus.OPEN,
+        secret_word="spy family",
+        starts_at=NOON - timedelta(days=1),
+        ends_at=NOON + timedelta(days=9),
+    )
+    await build_ranking(session, game)
+    return game
+
+
+@pytest.mark.parametrize("typed", ["Spy Family", "  spy   family ", "SPY X FAMILY"])
+async def test_phrase_and_variants_win(session, phrase_game, make_profile, typed) -> None:
+    profile = await make_profile()
+    result = await submit_guess(session, phrase_game, profile.id, typed, NOON)
+    assert result.outcome == Outcome.WON
+    assert result.word == "spy family"
+
+
+async def test_inflection_maps_to_base_word(session, phrase_game, make_profile) -> None:
+    profile = await make_profile()
+    result = await submit_guess(session, phrase_game, profile.id, "Cafés", NOON)
+    assert result.outcome == Outcome.ACCEPTED
+    assert result.word == "café"
+
+
+async def test_accents_are_significant(session, phrase_game, make_profile) -> None:
+    profile = await make_profile()
+    result = await submit_guess(session, phrase_game, profile.id, "cafe", NOON)
+    assert result.outcome == Outcome.UNKNOWN_WORD

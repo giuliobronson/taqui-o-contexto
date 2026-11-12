@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from pgvector.sqlalchemy import Vector
+from pgvector.sqlalchemy import HALFVEC
 from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -41,7 +41,17 @@ class Vocabulary(Base):
 
     model_version: Mapped[str] = mapped_column(String, primary_key=True)
     word: Mapped[str] = mapped_column(String, primary_key=True)
-    embedding: Mapped[list[float]] = mapped_column(Vector(), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(HALFVEC(), nullable=False)
+
+
+class WordForm(Base):
+    """Maps a form a player may type to a vocabulary word ("casas" → "casa")."""
+
+    __tablename__ = "word_forms"
+
+    model_version: Mapped[str] = mapped_column(String, primary_key=True)
+    form: Mapped[str] = mapped_column(String, primary_key=True)
+    word: Mapped[str] = mapped_column(String, nullable=False)
 
 
 class Game(Base):
