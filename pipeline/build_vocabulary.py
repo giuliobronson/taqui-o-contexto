@@ -98,7 +98,9 @@ def lemma_of(word: str, overrides: dict[str, str]) -> str:
     if lemma == word or not WORD_RE.match(lemma):
         return word
     drop = zipf_frequency(word, "pt") - zipf_frequency(lemma, "pt")
-    return lemma if drop <= LEMMA_MAX_FREQUENCY_DROP else word
+    if drop > LEMMA_MAX_FREQUENCY_DROP:
+        return word
+    return overrides.get(lemma, lemma)  # "mafias" → "mafia" → "máfia"
 
 
 @dataclass
@@ -140,6 +142,7 @@ def build_word_list(size: int, candidates: int) -> WordList:
     dictionary = load_dictionary()
     stopwords = set(read_list(DATA / "stopwords_pt.txt"))
     blocklist = set(read_list(DATA / "blocklist_pt.txt"))
+    rejected = set(read_list(DATA / "rejected_pt.txt"))
     extras = read_extras(DATA / "extra_words.txt")
     overrides = read_overrides(DATA / "lemma_overrides.txt")
 
@@ -180,6 +183,9 @@ def build_word_list(size: int, candidates: int) -> WordList:
 
         if lemma in blocklist or candidate in blocklist:
             drop("termo ofensivo")
+            continue
+        if lemma in rejected or candidate in rejected:
+            drop("rejeitada manualmente")
             continue
         if lemma in stopwords:
             drop("stopword")

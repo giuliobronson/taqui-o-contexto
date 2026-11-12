@@ -3,3 +3,16 @@
 quadrinhos = quadrinhos
 quadrinho = quadrinhos
 melhores = melhor
+# Feminine nouns the lemmatizer reads as verbs ("assassina" → "assassinar").
+assassina = assassino
+assassinas = assassino
+candidata = candidato
+candidatas = candidato
+# Spellings without the accent, European or English forms → Brazilian word.
+series = série
+serie = série
+mafia = máfia
+inspector = inspetor
+robot = robô
+scaner = scanner
+detective = detetive
