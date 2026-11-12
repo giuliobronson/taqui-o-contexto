@@ -228,7 +228,7 @@
   - Contraste das cores pastéis com o texto, foco visível, rótulos nos campos, modal com foco preso e fechamento por Esc.
   - **dep:** T-33
 
-- [ ] **T-36 · Testes de ponta a ponta**
+- [x] **T-36 · Testes de ponta a ponta**
   - Fluxo completo: admin cria jogo → jogo fica bloqueado → usuários entram → admin define watchers e libera → palpites ao longo de dias → acerto → cupom → jogo encerrado visível.
   - Simular a virada do dia sem esperar 24 h (relógio injetável).
   - **dep:** T-27, T-30
