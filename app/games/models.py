@@ -74,6 +74,9 @@ class Game(Base):
         UUID(as_uuid=True), ForeignKey("profiles.id", ondelete="SET NULL")
     )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Coupon registered by the admin; only the winner (and admins) ever see it.
+    prize_code: Mapped[str | None] = mapped_column(String)
+    prize_description: Mapped[str | None] = mapped_column(String)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("profiles.id", ondelete="SET NULL")
     )

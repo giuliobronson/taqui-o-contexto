@@ -140,7 +140,9 @@ Existem dois níveis de papel:
   - um **cupom no estilo de sites de cupons**: ticket com borda tracejada, recortes semicirculares nas laterais e linha picotada;
   - interação de **"rasgar"** o canhoto (clique ou arrasto) que revela o código;
   - botão "Copiar código".
-- O código é gerado e atribuído **no servidor**, só após validar o acerto e o encerramento do jogo.
+- O **admin cadastra o cupom de cada jogo** no painel: o código e, opcionalmente, uma descrição do prêmio (por exemplo, "20% de desconto na loja X"). O mesmo código pode ser usado em mais de um jogo.
+- O código é atribuído ao vencedor **no servidor**, na mesma transação que valida o acerto e encerra o jogo. Se o jogo terminar sem cupom cadastrado, o vencedor vê um aviso, e o cupom é entregue assim que o admin cadastrar o código.
+- Só o vencedor e os admins veem o código.
 - Existe **um cupom por jogo**. Recarregar a página mostra o mesmo cupom ao vencedor.
 - O vencedor pode reabrir o cupom depois (por exemplo, pelo link "Meu prêmio").
 - Os demais usuários veem apenas o anúncio de quem venceu.
@@ -226,6 +228,7 @@ games          (id, secret_word, model_version, vocabulary_size,
                 starts_at, ends_at,
                 unlocked_at NULL, unlocked_by → profiles.id NULL,
                 winner_id → profiles.id NULL, finished_at NULL,
+                prize_code NULL, prize_description NULL,
                 created_by → profiles.id, created_at)
 
 game_members   (game_id → games.id, user_id → profiles.id,
@@ -245,6 +248,7 @@ hints          (id, game_id → games.id, author_id → profiles.id,
 
 prizes         (id, game_id → games.id, user_id → profiles.id, code, claimed_at)
                  UNIQUE (game_id)                        -- 1 cupom por jogo
+                 -- code é copiado de games.prize_code (cadastrado pelo admin)
 ```
 
 Decisões:
@@ -347,6 +351,5 @@ Dependências entre features:
 
 ## 10. Questões em aberto
 
-- **Origem dos cupons:** códigos gerados pelo sistema ou lista fornecida por um parceiro? Qual é o prêmio?
 - **Entre jogos:** quando um jogo termina antes da data de fim, o próximo começa imediatamente ou espera o seu `starts_at`?
 - **Flexões:** palpites como "casas" devem ser convertidos para "casa"? Se sim, precisamos de uma tabela de formas → lema.

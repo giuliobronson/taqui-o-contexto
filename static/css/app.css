@@ -460,3 +460,29 @@ h2 {
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* ---------- Coupon ---------- */
+
+.coupon {
+  margin-top: 12px;
+  padding: 16px;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg);
+  text-align: center;
+}
+
+.coupon p {
+  margin: 4px 0;
+}
+
+.coupon-description {
+  font-weight: 700;
+}
+
+.coupon-code {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}

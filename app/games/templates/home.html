@@ -37,6 +37,13 @@
         {% if page.winner %}🎉 <strong>{{ page.winner.display_name }}</strong> acertou!
         {% else %}Ninguém acertou desta vez.{% endif %}
       </p>
+      {% if page.is_winner %}
+        {% if page.prize %}
+          {% with prize = page.prize %}{% include "prizes/coupon.html" %}{% endwith %}
+        {% else %}
+          <p class="muted">Seu cupom ainda vai ser cadastrado pelo administrador. Volte aqui ou em <a href="/prizes/me">Meu prêmio</a>.</p>
+        {% endif %}
+      {% endif %}
       {% if page.next_game %}
         <p class="muted">Próximo jogo: {{ page.next_game.starts_at | local_datetime }}</p>
       {% endif %}

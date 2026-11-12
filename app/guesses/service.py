@@ -16,6 +16,7 @@ from app.games.models import Game, GameStatus
 from app.games.ranking import rank_of, resolve_word
 from app.games.service import finish_game
 from app.guesses.models import Guess
+from app.prizes.service import award_prize
 
 
 class Outcome(enum.StrEnum):
@@ -89,9 +90,12 @@ async def submit_guess(
         return GuessResult(Outcome.ALREADY_GUESSED_TODAY, word)
 
     # The conditional UPDATE decides the race: only the first correct guess wins.
-    if rank == 1 and not await finish_game(session, game.id, now, winner_id=user_id, commit=False):
-        await session.rollback()
-        return GuessResult(Outcome.GAME_FINISHED, word)
+    if rank == 1:
+        if not await finish_game(session, game.id, now, winner_id=user_id, commit=False):
+            await session.rollback()
+            return GuessResult(Outcome.GAME_FINISHED, word)
+        # Same transaction: the coupon is handed over only if the finish commits.
+        await award_prize(session, game.id)
 
     await session.commit()
 

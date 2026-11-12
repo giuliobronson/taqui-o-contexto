@@ -172,8 +172,9 @@
 
 ## Fase 7 · Prêmio
 
-- [ ] **T-26 · Atribuição do cupom** 🔒 (origem dos cupons)
-  - `prizes/service.py`: gera ou atribui o código ao vencedor, chamado só depois que `finish_game()` confirmou o encerramento.
+- [x] **T-26 · Atribuição do cupom**
+  - O admin cadastra o código no jogo (`games.prize_code`, `games.prize_description`).
+  - `prizes/service.py`: `award_prize()` copia o código para o vencedor, na mesma transação de `finish_game()`; se o código for cadastrado depois do acerto, o painel chama a mesma função.
   - Idempotente: um cupom por jogo (`UNIQUE (game_id)`).
   - `GET /prizes/me`: devolve o cupom do vencedor.
   - **dep:** T-16
@@ -189,7 +190,7 @@
 
 - [ ] **T-28 · Lista e criação de jogos**
   - `GET /admin`: jogos com estado, datas, palavra, membros, palpites e vencedor.
-  - `GET/POST /admin/games/new`: palavra (precisa existir no vocabulário), `starts_at` e `ends_at`; recusar sobreposição de períodos; calcular o ranking ao salvar.
+  - `GET/POST /admin/games/new`: palavra (precisa existir no vocabulário), `starts_at`, `ends_at`, código e descrição do cupom; recusar sobreposição de períodos; calcular o ranking ao salvar.
   - **dep:** T-14, T-17
 
 - [ ] **T-29 · Edição, liberação e encerramento**

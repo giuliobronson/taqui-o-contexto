@@ -18,6 +18,7 @@ from app.games.service import (
 from app.guesses.models import Guess
 from app.guesses.service import RankingRow, ranking, time_until_next_day, todays_guess
 from app.hints.service import HintView, list_hints
+from app.prizes.service import PrizeView, prize_for_game
 
 
 class FormState(enum.StrEnum):
@@ -46,6 +47,7 @@ class GamePage:
     winner: Profile | None = None
     next_game: Game | None = None
     hints: list[HintView] = field(default_factory=list)
+    prize: PrizeView | None = None  # only for the winner
 
     @property
     def can_see_secret(self) -> bool:
@@ -56,6 +58,12 @@ class GamePage:
         if self.user is not None and self.user.is_admin:
             return True
         return self.member is not None and self.member.role == MemberRole.WATCHER
+
+    @property
+    def is_winner(self) -> bool:
+        return (
+            self.user is not None and self.game is not None and self.game.winner_id == self.user.id
+        )
 
     @property
     def can_hint(self) -> bool:
@@ -124,4 +132,6 @@ async def build_game_page(
     page.hints = await list_hints(session, game)
     if game.winner_id is not None:
         page.winner = await session.get(Profile, game.winner_id)
+    if page.is_winner and user is not None:
+        page.prize = await prize_for_game(session, game.id, user.id)
     return page
