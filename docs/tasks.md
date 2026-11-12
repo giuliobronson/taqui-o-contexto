@@ -112,7 +112,7 @@
   - **dep:** T-08
   - **Pronto quando:** há testes para cada transição, incluindo o fim por data com o jogo ainda bloqueado.
 
-- [ ] **T-17 · Cálculo do ranking do jogo**
+- [x] **T-17 · Cálculo do ranking do jogo**
   - `build_ranking(game_id)`: apaga as linhas antigas e roda o `INSERT ... SELECT ... ROW_NUMBER()` do RF-8; grava `vocabulary_size`.
   - Validar que a palavra secreta existe no vocabulário.
   - **dep:** T-11, T-16
