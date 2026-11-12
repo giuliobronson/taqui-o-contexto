@@ -84,7 +84,7 @@
   - Renovação do token (refresh) quando expirar.
   - **dep:** T-04, T-05
 
-- [ ] **T-13 · `current_user` e perfil**
+- [x] **T-13 · `current_user` e perfil**
   - `app/core/security.py`: dependência `current_user` que valida o JWT do cookie e devolve o perfil (ou `None` para visitantes).
   - No primeiro login, criar `profiles` com nome, avatar e e-mail do Google.
   - Se o e-mail estiver em `ADMIN_EMAILS`, marcar `is_admin = true`.
