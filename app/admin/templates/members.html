@@ -1,0 +1,63 @@
+{% extends "core/base.html" %}
+{% block title %}Admin · Taqui o Contexto{% endblock %}
+
+{% block content %}
+<p><a href="/admin/games/{{ game.id }}" class="muted">← Jogo #{{ game.id }}</a></p>
+
+<section class="admin-head">
+  <h1>Membros do jogo #{{ game.id }}</h1>
+  {% include "admin/_status.html" %}
+</section>
+
+{% if notice %}<p class="message message-ok" role="status">{{ notice }}</p>{% endif %}
+
+<p class="muted">
+  Quem entra no site com o jogo ativo vira player. Um player sem palpites pode virar watcher;
+  um watcher nunca volta a ser player neste jogo, porque já viu a palavra.
+</p>
+
+{% if members %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th scope="col">Nome</th>
+        <th scope="col">E-mail</th>
+        <th scope="col">Papel</th>
+        <th scope="col">Palpites</th>
+        <th scope="col"><span class="sr-only">Ações</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in members %}
+        <tr>
+          <td data-label="Nome">
+            <span class="member-name">
+              {% if m.avatar_url %}<img class="avatar" src="{{ m.avatar_url }}" alt="" referrerpolicy="no-referrer">{% endif %}
+              {{ m.name }}
+            </span>
+          </td>
+          <td data-label="E-mail">{{ m.email }}</td>
+          <td data-label="Papel">
+            <span class="chip {% if m.role == 'watcher' %}chip-watcher{% endif %}">{% if m.role == "watcher" %}Watcher{% else %}Player{% endif %}</span>
+          </td>
+          <td data-label="Palpites">{{ m.guesses }}</td>
+          <td data-label="Ações">
+            {% if game.status in ("locked", "open") and m.can_become_watcher %}
+              <button class="btn btn-ghost" hx-post="/admin/games/{{ game.id }}/members/{{ m.user_id }}/role"
+                      hx-vals='{"role": "watcher"}'
+                      hx-confirm="Tornar {{ m.name }} watcher? Essa pessoa vai ver a palavra secreta e não poderá mais jogar neste jogo.">Tornar watcher</button>
+            {% elif m.role == "player" and m.guesses %}
+              <span class="muted small">Já palpitou</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <section class="card empty-state">
+    <p>Ninguém entrou neste jogo ainda.</p>
+    {% if game.status == "scheduled" %}<p class="muted">Os membros entram quando o jogo começa (fica bloqueado).</p>{% endif %}
+  </section>
+{% endif %}
+{% endblock %}

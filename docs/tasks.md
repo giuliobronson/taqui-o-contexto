@@ -199,7 +199,7 @@
   - `POST /admin/games/{id}/finish` e `DELETE /admin/games/{id}` (só agendado).
   - **dep:** T-28
 
-- [ ] **T-30 · Membros e watchers**
+- [x] **T-30 · Membros e watchers**
   - `GET /admin/games/{id}/members`: membros com papel e número de palpites.
   - `POST /admin/games/{id}/members/{user_id}/role`: player → watcher, só se ele não tiver palpites. Nunca watcher → player.
   - **dep:** T-15, T-28

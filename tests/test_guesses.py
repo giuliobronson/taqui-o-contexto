@@ -44,12 +44,16 @@ async def open_game(session, make_game):
     return game
 
 
-@pytest.fixture
-async def player(session, make_profile, open_game):
+async def _new_player(session, make_profile, game, role=MemberRole.PLAYER) -> Profile:
     profile = await make_profile(name="Ana")
-    session.add(GameMember(game_id=open_game.id, user_id=profile.id, role=MemberRole.PLAYER))
+    session.add(GameMember(game_id=game.id, user_id=profile.id, role=role))
     await session.flush()
     return profile
+
+
+@pytest.fixture
+async def player(session, make_profile, open_game):
+    return await _new_player(session, make_profile, open_game)
 
 
 # ---------- submit_guess ----------
@@ -115,7 +119,7 @@ async def test_correct_guess_wins_and_finishes_game(session, open_game, player) 
 
 async def test_no_guesses_after_game_finished(session, open_game, player, make_profile) -> None:
     await submit_guess(session, open_game, player.id, "café", NOON)
-    other = await make_profile()
+    other = await _new_player(session, make_profile, open_game)
     result = await submit_guess(session, open_game, other.id, "chá", NOON)
     assert result.outcome == Outcome.GAME_FINISHED
 
@@ -136,7 +140,7 @@ async def test_time_until_next_day() -> None:
 
 
 async def test_ranking_groups_and_orders_guesses(session, open_game, player, make_profile) -> None:
-    other = await make_profile()
+    other = await _new_player(session, make_profile, open_game)
     await submit_guess(session, open_game, player.id, "pedra", NOON)
     await submit_guess(session, open_game, other.id, "pedra", NOON)
     await submit_guess(session, open_game, player.id, "chá", NOON + timedelta(days=1))
@@ -179,6 +183,7 @@ async def test_two_simultaneous_correct_guesses_have_one_winner(engine) -> None:
                 {"id": user_id, "email": f"{user_id.hex[:8]}@race.test"},
             )
             setup.add(Profile(id=user_id, email=f"{user_id.hex[:8]}@race.test", display_name="R"))
+        await setup.flush()
         setup.add_all(
             Vocabulary(model_version=model, word=w, embedding=v) for w, v in WORDS.items()
         )
@@ -192,6 +197,7 @@ async def test_two_simultaneous_correct_guesses_have_one_winner(engine) -> None:
         )
         setup.add(game)
         await setup.flush()
+        setup.add_all(GameMember(game_id=game.id, user_id=u, role=MemberRole.PLAYER) for u in ids)
         await build_ranking(setup, game)
         await setup.commit()
 
@@ -363,20 +369,30 @@ async def phrase_game(session, make_game):
 
 @pytest.mark.parametrize("typed", ["Spy Family", "  spy   family ", "SPY X FAMILY"])
 async def test_phrase_and_variants_win(session, phrase_game, make_profile, typed) -> None:
-    profile = await make_profile()
+    profile = await _new_player(session, make_profile, phrase_game)
     result = await submit_guess(session, phrase_game, profile.id, typed, NOON)
     assert result.outcome == Outcome.WON
     assert result.word == "spy family"
 
 
 async def test_inflection_maps_to_base_word(session, phrase_game, make_profile) -> None:
-    profile = await make_profile()
+    profile = await _new_player(session, make_profile, phrase_game)
     result = await submit_guess(session, phrase_game, profile.id, "Cafés", NOON)
     assert result.outcome == Outcome.ACCEPTED
     assert result.word == "café"
 
 
 async def test_accents_are_significant(session, phrase_game, make_profile) -> None:
-    profile = await make_profile()
+    profile = await _new_player(session, make_profile, phrase_game)
     result = await submit_guess(session, phrase_game, profile.id, "cafe", NOON)
     assert result.outcome == Outcome.UNKNOWN_WORD
+
+
+async def test_watcher_cannot_guess_even_calling_the_service(
+    session, open_game, make_profile
+) -> None:
+    watcher = await _new_player(session, make_profile, open_game, MemberRole.WATCHER)
+    result = await submit_guess(session, open_game, watcher.id, "café", NOON)
+    assert result.outcome == Outcome.NOT_A_PLAYER
+    await session.refresh(open_game)
+    assert open_game.status == GameStatus.OPEN

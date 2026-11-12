@@ -292,3 +292,90 @@ async def test_delete_only_scheduled(client, session, admin) -> None:
 
 async def test_unknown_game_is_404(client, admin) -> None:
     assert (await client.get("/admin/games/999999")).status_code == 404
+
+
+# ---------- members and watchers (T-30) ----------
+
+
+async def _member(session, make_profile, game, name, role=MemberRole.PLAYER) -> Profile:
+    profile = await make_profile(name=name)
+    session.add(GameMember(game_id=game.id, user_id=profile.id, role=role))
+    await session.flush()
+    return profile
+
+
+async def test_members_page_lists_roles_and_guesses(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.OPEN)
+    ana = await _member(session, make_profile, game, "Ana")
+    bia = await _member(session, make_profile, game, "Bia")
+    await _member(session, make_profile, game, "Caio", MemberRole.WATCHER)
+    await submit_guess(session, game, ana.id, "chá", NOON)
+
+    page = await client.get(f"/admin/games/{game.id}/members")
+    text = page.text
+    assert text.index("Caio") < text.index("Ana")  # watchers first
+    assert "Já palpitou" in text
+    assert f"/members/{bia.id}/role" in text
+    assert f"/members/{ana.id}/role" not in text
+
+
+async def test_player_becomes_watcher(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.LOCKED)
+    bia = await _member(session, make_profile, game, "Bia")
+    response = await client.post(
+        f"/admin/games/{game.id}/members/{bia.id}/role",
+        data={"role": "watcher"},
+        headers={"HX-Request": "true"},
+    )
+    assert response.headers["HX-Redirect"] == f"/admin/games/{game.id}/members?notice=watcher"
+    member = await session.get(GameMember, (game.id, bia.id))
+    await session.refresh(member)
+    assert member.role == MemberRole.WATCHER
+
+    # The new watcher sees the secret and the hint form, not the guess form.
+    client.cookies.set(ACCESS_COOKIE, mint_token(bia.id, bia.email))
+    home = await client.get("/")
+    assert "Palavra secreta" in home.text and 'hx-post="/guesses"' not in home.text
+
+
+async def test_player_with_guesses_stays_player(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.OPEN)
+    ana = await _member(session, make_profile, game, "Ana")
+    await submit_guess(session, game, ana.id, "chá", NOON)
+    response = await client.post(f"/admin/games/{game.id}/members/{ana.id}/role")
+    assert response.status_code == 409
+    assert "já deu palpites" in response.text
+    member = await session.get(GameMember, (game.id, ana.id))
+    await session.refresh(member)
+    assert member.role == MemberRole.PLAYER
+
+
+async def test_watcher_never_goes_back(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.OPEN)
+    caio = await _member(session, make_profile, game, "Caio", MemberRole.WATCHER)
+    url = f"/admin/games/{game.id}/members/{caio.id}/role"
+    assert (await client.post(url, data={"role": "player"})).status_code == 409
+    assert (await client.post(url, data={"role": "watcher"})).status_code == 409
+
+
+async def test_no_role_changes_in_finished_games(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.FINISHED, starts_at=NOON - timedelta(days=5))
+    bia = await _member(session, make_profile, game, "Bia")
+    response = await client.post(f"/admin/games/{game.id}/members/{bia.id}/role")
+    assert response.status_code == 409
+
+
+async def test_non_member_cannot_be_promoted(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.OPEN)
+    stranger = await make_profile(name="Zé")
+    response = await client.post(f"/admin/games/{game.id}/members/{stranger.id}/role")
+    assert response.status_code == 409
+
+
+async def test_members_page_needs_admin(client, session, make_profile) -> None:
+    game = await _game(session, GameStatus.OPEN)
+    player = await _member(session, make_profile, game, "Ana")
+    client.cookies.set(ACCESS_COOKIE, mint_token(player.id, player.email))
+    assert (await client.get(f"/admin/games/{game.id}/members")).status_code == 403
+    url = f"/admin/games/{game.id}/members/{player.id}/role"
+    assert (await client.post(url)).status_code == 403

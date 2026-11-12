@@ -283,3 +283,80 @@ async def delete_game(session: AsyncSession, game: Game) -> None:
         raise GameStateError("Only a scheduled game can be deleted.")
     await session.execute(delete(Game).where(Game.id == game.id))
     await session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Members and watchers (PRD "Designação de watchers")
+# ---------------------------------------------------------------------------
+
+
+class RoleChangeError(Exception):
+    pass
+
+
+@dataclass(frozen=True)
+class MemberRow:
+    user_id: uuid.UUID
+    name: str
+    email: str
+    avatar_url: str | None
+    role: MemberRole
+    guesses: int
+    joined_at: datetime
+
+    @property
+    def can_become_watcher(self) -> bool:
+        return self.role == MemberRole.PLAYER and self.guesses == 0
+
+
+async def game_members(session: AsyncSession, game_id: int) -> list[MemberRow]:
+    """Members with their role and number of guesses: watchers first, then by name."""
+    guesses = (
+        select(func.count())
+        .where(Guess.game_id == GameMember.game_id, Guess.user_id == GameMember.user_id)
+        .scalar_subquery()
+    )
+    rows = await session.execute(
+        select(GameMember, Profile, guesses.label("guesses"))
+        .join(Profile, Profile.id == GameMember.user_id)
+        .where(GameMember.game_id == game_id)
+        .order_by(GameMember.role.desc(), func.lower(Profile.display_name))
+    )
+    return [
+        MemberRow(
+            user_id=profile.id,
+            name=profile.display_name,
+            email=profile.email,
+            avatar_url=profile.avatar_url,
+            role=member.role,
+            guesses=count,
+            joined_at=member.joined_at,
+        )
+        for member, profile, count in rows
+    ]
+
+
+async def make_watcher(session: AsyncSession, game: Game, user_id: uuid.UUID) -> None:
+    """Player → watcher, only for an active game and a player with no guesses.
+
+    The membership row is locked, like submit_guess() does, so a guess and the
+    role change cannot interleave. There is no way back: a watcher saw the word.
+    """
+    if game.status not in ACTIVE_STATUSES:
+        raise RoleChangeError("O jogo não está ativo.")
+    member = await session.scalar(
+        select(GameMember)
+        .where(GameMember.game_id == game.id, GameMember.user_id == user_id)
+        .with_for_update()
+    )
+    if member is None:
+        raise RoleChangeError("Usuário não é membro deste jogo.")
+    if member.role != MemberRole.PLAYER:
+        raise RoleChangeError("Um watcher não volta a ser player.")
+    has_guesses = await session.scalar(
+        select(select(Guess.id).where(Guess.game_id == game.id, Guess.user_id == user_id).exists())
+    )
+    if has_guesses:
+        raise RoleChangeError("Este player já deu palpites neste jogo.")
+    member.role = MemberRole.WATCHER
+    await session.commit()

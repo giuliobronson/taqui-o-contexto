@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Form, HTTPException, Request, status
@@ -6,12 +7,15 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 import app.guesses.presentation  # noqa: F401  (registers the template filters)
 from app.admin.service import (
     GameForm,
+    RoleChangeError,
     create_game,
     delete_game,
     editable_fields,
     finish,
+    game_members,
     game_summaries,
     game_summary,
+    make_watcher,
     unlock,
     update_game,
     validate,
@@ -31,6 +35,7 @@ NOTICES = {
     "unlocked": "Jogo liberado: palpites e dicas estão abertos.",
     "finished": "Jogo encerrado.",
     "deleted": "Jogo excluído.",
+    "watcher": "Agora é watcher neste jogo.",
 }
 
 FormField = Annotated[str, Form(max_length=300)]
@@ -206,3 +211,47 @@ async def delete_action(
             status.HTTP_409_CONFLICT, "Só um jogo agendado pode ser excluído."
         ) from None
     return _redirect(request, "/admin?notice=deleted")
+
+
+@router.get("/games/{game_id}/members", response_class=HTMLResponse)
+async def members_page(
+    game_id: int,
+    request: Request,
+    user: AdminUser,
+    session: Session,
+    now: Now,
+    notice: str | None = None,
+) -> HTMLResponse:
+    await current_game(session, now)
+    game = await _game_or_404(session, game_id)
+    return templates.TemplateResponse(
+        request,
+        "admin/members.html",
+        {
+            "user": user,
+            "game": game,
+            "members": await game_members(session, game_id),
+            "notice": NOTICES.get(notice),
+        },
+    )
+
+
+@router.post("/games/{game_id}/members/{user_id}/role")
+async def change_role(
+    game_id: int,
+    user_id: uuid.UUID,
+    request: Request,
+    user: AdminUser,
+    session: Session,
+    now: Now,
+    role: Annotated[str, Form(max_length=20)] = "watcher",
+) -> Response:
+    await current_game(session, now)
+    game = await _game_or_404(session, game_id)
+    if role != "watcher":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Um watcher não volta a ser player.")
+    try:
+        await make_watcher(session, game, user_id)
+    except RoleChangeError as error:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(error)) from None
+    return _redirect(request, f"/admin/games/{game.id}/members?notice=watcher")

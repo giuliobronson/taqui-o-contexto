@@ -641,3 +641,14 @@ h2 {
     font-size: 0.85rem;
   }
 }
+
+.chip-watcher {
+  background: hsl(210, 45%, 88%);
+  color: hsl(210, 35%, 28%);
+}
+
+.member-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

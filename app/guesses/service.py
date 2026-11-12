@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.clock import local_date
 from app.core.config import get_settings
-from app.games.models import Game, GameStatus
+from app.games.models import Game, GameMember, GameStatus, MemberRole
 from app.games.ranking import rank_of, resolve_word
 from app.games.service import finish_game
 from app.guesses.models import Guess
@@ -27,6 +27,7 @@ class Outcome(enum.StrEnum):
     ALREADY_GUESSED_TODAY = "already_guessed_today"
     GAME_LOCKED = "game_locked"
     GAME_FINISHED = "game_finished"
+    NOT_A_PLAYER = "not_a_player"
     EMPTY = "empty"
 
 
@@ -63,6 +64,16 @@ async def submit_guess(
     word = await resolve_word(session, game.model_version, raw_word)
     if not word:
         return GuessResult(Outcome.EMPTY)
+
+    # Lock the membership row: an admin turning this player into a watcher waits
+    # for this guess (and then refuses), or this guess sees the new role.
+    role = await session.scalar(
+        select(GameMember.role)
+        .where(GameMember.game_id == game.id, GameMember.user_id == user_id)
+        .with_for_update()
+    )
+    if role != MemberRole.PLAYER:
+        return GuessResult(Outcome.NOT_A_PLAYER)
 
     today = local_date(now)
     if await todays_guess(session, game.id, user_id, today) is not None:

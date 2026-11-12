@@ -47,6 +47,7 @@
                 hx-confirm="Excluir o jogo #{{ game.id }}?">Excluir jogo</button>
       {% endif %}
       {% if game.status != "scheduled" %}
+        <a class="btn btn-ghost" href="/admin/games/{{ game.id }}/members">Membros e watchers</a>
         <a class="btn btn-ghost" href="{% if game.status == 'finished' %}/games/{{ game.id }}{% else %}/{% endif %}">Ver página do jogo</a>
       {% endif %}
     </div>
