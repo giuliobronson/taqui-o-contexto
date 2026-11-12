@@ -112,14 +112,13 @@ Existem dois níveis de papel:
 - Os palpites do usuário logado ficam destacados.
 - Watchers e admins veem a palavra secreta fixada no topo, com uma indicação de que só eles a veem.
 - Com o jogo encerrado, o topo mostra a palavra secreta e o vencedor (ou "sem vencedor") para todos.
-- **Cores:** derivadas da posição, sem armazenamento no banco. Tons pastéis, de verde (perto) a vermelho (longe), em escala logarítmica:
+- **Cores:** derivadas da posição, sem armazenamento no banco, e calculadas no servidor ao renderizar o ranking. Tons pastéis, de verde (perto) a vermelho (longe), em escala logarítmica:
 
-  ```js
-  function rankToColor(rank, total) {
-    const t = Math.log(rank) / Math.log(total); // 0 = perto, 1 = longe
-    const hue = 120 * (1 - t);                  // 120 = verde, 0 = vermelho
-    return `hsl(${hue}, 55%, 82%)`;
-  }
+  ```python
+  def rank_to_color(rank: int, total: int) -> str:
+      t = math.log(rank) / math.log(total)  # 0 = perto, 1 = longe
+      hue = round(120 * (1 - t))            # 120 = verde, 0 = vermelho
+      return f"hsl({hue}, 55%, 82%)"
   ```
 
 - O ranking é atualizado após cada palpite (parcial HTMX) e periodicamente (polling HTMX, por exemplo, a cada 30 s). Assim, todos percebem o fim do jogo sem recarregar a página.
@@ -289,7 +288,6 @@ app/
 └── admin/       # painel: jogos, membros, watchers, admins, moderação
 pipeline/        # build_vocabulary.py (dependências pesadas, fora do app)
 migrations/
-static/js/colors.js
 ```
 
 Dependências entre features:

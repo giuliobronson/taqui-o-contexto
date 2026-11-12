@@ -1,8 +1,72 @@
 {% extends "core/base.html" %}
 
 {% block content %}
-  <section class="card">
-    <h1>Taqui o Contexto</h1>
-    <p>Descubra a palavra secreta. Cada palpite mostra o quão perto você está.</p>
+{% if not game %}
+  <section class="card empty-state">
+    <h1>Nenhum jogo no momento</h1>
+    {% if page.next_game %}
+      <p>O próximo jogo começa em <strong>{{ page.next_game.starts_at | local_datetime }}</strong>.</p>
+    {% else %}
+      <p>Volte em breve: um novo jogo será anunciado.</p>
+    {% endif %}
   </section>
+{% else %}
+  <section class="game-header">
+    <div>
+      <h1>Jogo #{{ game.id }}</h1>
+      <p class="muted">
+        {% if game.status == "locked" %}
+          Aguardando liberação · termina em {{ game.ends_at | local_datetime }}
+        {% elif game.status == "open" %}
+          Em andamento · termina em {{ game.ends_at | local_datetime }}
+        {% else %}
+          Encerrado em {{ game.finished_at | local_datetime }}
+        {% endif %}
+      </p>
+    </div>
+    <span class="chip chip-{{ game.status }}">
+      {% if game.status == "locked" %}Bloqueado{% elif game.status == "open" %}Aberto{% else %}Encerrado{% endif %}
+    </span>
+  </section>
+
+  {% if game.status == "finished" %}
+    <section class="card result-banner">
+      <p class="muted">A palavra era</p>
+      <p class="secret-word">{{ game.secret_word }}</p>
+      <p>
+        {% if page.winner %}🎉 <strong>{{ page.winner.display_name }}</strong> acertou!
+        {% else %}Ninguém acertou desta vez.{% endif %}
+      </p>
+      {% if page.next_game %}
+        <p class="muted">Próximo jogo: {{ page.next_game.starts_at | local_datetime }}</p>
+      {% endif %}
+    </section>
+  {% elif page.can_see_secret %}
+    <section class="card secret-pin" aria-label="Palavra secreta">
+      <span class="muted">Palavra secreta</span>
+      <strong class="secret-word">{{ game.secret_word }}</strong>
+      <span class="muted small">Só administradores e observadores veem isto.</span>
+    </section>
+  {% endif %}
+
+  <div class="game-layout">
+    <section class="panel" aria-labelledby="ranking-title">
+      {% include "guesses/guess_form.html" %}
+      <h2 id="ranking-title">Ranking</h2>
+      <div id="ranking"
+           {% if page.is_current %}
+           hx-get="/ranking?status={{ game.status }}"
+           hx-trigger="every 30s"
+           hx-swap="innerHTML"
+           {% endif %}>
+        {% include "guesses/ranking.html" %}
+      </div>
+    </section>
+
+    <aside class="panel" aria-labelledby="hints-title">
+      <h2 id="hints-title">Mural de dicas</h2>
+      <p class="muted">As dicas dos observadores aparecem aqui.</p>
+    </aside>
+  </div>
+{% endif %}
 {% endblock %}

@@ -137,3 +137,248 @@ a {
     display: inline-flex;
   }
 }
+
+/* ---------- Shared helpers ---------- */
+
+.muted {
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: 0.875rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+h1,
+h2 {
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+}
+
+/* ---------- Game page ---------- */
+
+.empty-state {
+  text-align: center;
+}
+
+.game-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.game-header p {
+  margin: 0;
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--surface-muted);
+}
+
+.chip-locked {
+  background: hsl(40, 70%, 85%);
+  color: hsl(35, 45%, 28%);
+}
+
+.chip-open {
+  background: hsl(130, 45%, 84%);
+  color: hsl(135, 35%, 24%);
+}
+
+.chip-finished {
+  background: hsl(260, 30%, 88%);
+  color: hsl(260, 25%, 30%);
+}
+
+.secret-pin,
+.result-banner {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.secret-pin {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-style: dashed;
+}
+
+.result-banner p {
+  margin: 4px 0;
+}
+
+.secret-word {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.game-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .game-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+
+/* ---------- Guess form ---------- */
+
+.guess-form {
+  margin-bottom: 20px;
+}
+
+.guess-row {
+  display: flex;
+  gap: 8px;
+}
+
+.guess-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.guess-row input:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.guess-form .small {
+  margin: 8px 4px 0;
+}
+
+.message {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+}
+
+.message-won {
+  background: hsl(130, 45%, 84%);
+  color: hsl(135, 35%, 20%);
+  font-weight: 700;
+}
+
+.message-unknown_word,
+.message-repeated_word,
+.message-empty {
+  background: hsl(40, 70%, 88%);
+  color: hsl(35, 45%, 25%);
+}
+
+/* ---------- Ranking ---------- */
+
+.ranking {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rank-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-muted);
+  color: #2f2a26;
+}
+
+/* Coloured bar: its length is the proximity, its colour comes from the rank. */
+.rank-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--proximity);
+  background: var(--row-color);
+}
+
+.rank-row > * {
+  position: relative;
+}
+
+.rank-row.is-mine {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  font-weight: 700;
+}
+
+.rank-word {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.rank-players {
+  font-size: 0.8rem;
+  color: #6f675f;
+}
+
+.rank-number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .rank-row {
+    color: var(--text);
+  }
+
+  .rank-row::before {
+    opacity: 0.35;
+  }
+
+  .rank-players {
+    color: var(--text-muted);
+  }
+}

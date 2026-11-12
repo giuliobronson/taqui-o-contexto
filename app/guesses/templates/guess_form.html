@@ -1,0 +1,48 @@
+{# Guess field and its states (PRD RF-2, T-23). Swapped in place after each guess. #}
+<div id="guess-form" class="guess-form">
+  {% if result %}
+    {% set messages = {
+      "accepted": "“" ~ result.word ~ "” está na posição " ~ result.rank ~ ".",
+      "won": "Você acertou! A palavra era “" ~ result.word ~ "”.",
+      "unknown_word": "Não conhecemos “" ~ result.word ~ "”. Tente outra palavra: seu palpite de hoje continua valendo.",
+      "repeated_word": "Você já tentou “" ~ result.word ~ "” neste jogo. Tente outra.",
+      "already_guessed_today": "Você já deu o seu palpite de hoje.",
+      "game_locked": "O jogo ainda não foi liberado.",
+      "game_finished": "O jogo já terminou.",
+      "empty": "Digite uma palavra.",
+    } %}
+    <p class="message message-{{ result.outcome }}" role="status">{{ messages[result.outcome] }}</p>
+  {% endif %}
+
+  {% set state = page.form_state %}
+  {% if state == "ready" %}
+    <form hx-post="/guesses" hx-target="#guess-form" hx-swap="outerHTML" class="guess-row">
+      <label for="word" class="sr-only">Seu palpite</label>
+      <input id="word" name="word" type="text" maxlength="60" autocomplete="off"
+             autocapitalize="none" spellcheck="false" placeholder="Digite uma palavra" required autofocus>
+      <button class="btn" type="submit">Chutar</button>
+    </form>
+    <p class="muted small">Você tem um palpite por dia.</p>
+  {% else %}
+    <div class="guess-row">
+      <input type="text" disabled aria-label="Campo de palpite desabilitado"
+             placeholder="{% if state == 'waiting' %}Volte amanhã{% else %}Palpites indisponíveis{% endif %}">
+      {% if state == "visitor" %}
+        <a class="btn" href="/auth/login">Entrar para jogar</a>
+      {% else %}
+        <button class="btn" disabled>Chutar</button>
+      {% endif %}
+    </div>
+    <p class="muted small">
+      {% if state == "visitor" %}Entre com sua conta Google para participar.
+      {% elif state == "admin" %}Administradores acompanham o jogo, sem palpitar.
+      {% elif state == "watcher" %}Você é observador neste jogo: deixe dicas no mural.
+      {% elif state == "locked" %}O jogo ainda não foi liberado. Aguarde o administrador.
+      {% elif state == "finished" %}O jogo terminou.
+      {% elif state == "waiting" %}
+        Seu palpite de hoje: <strong>{{ page.todays_guess.word }}</strong>
+        (posição {{ page.todays_guess.rank }}). Próximo palpite em {{ page.wait | duration }}.
+      {% endif %}
+    </p>
+  {% endif %}
+</div>

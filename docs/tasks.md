@@ -118,7 +118,7 @@
   - **dep:** T-11, T-16
   - **Pronto quando:** a palavra secreta fica na posição 1 e o total de linhas é igual ao tamanho do vocabulário.
 
-- [ ] **T-18 · Página principal**
+- [x] **T-18 · Página principal**
   - `GET /` mostra o estado atual:
     - jogo **bloqueado**: aviso "O jogo ainda não foi liberado";
     - jogo **aberto**: campo de palpite (conforme o papel), ranking e mural;
@@ -126,14 +126,14 @@
   - Watchers e admins veem a palavra secreta fixada no topo.
   - **dep:** T-05, T-15, T-16
 
-- [ ] **T-19 · Página de jogo encerrado**
+- [x] **T-19 · Página de jogo encerrado**
   - `GET /games/{id}`: palavra revelada, vencedor (ou "sem vencedor"), ranking final e mural.
   - Devolver 404 para jogos ainda não encerrados (para não vazar nada).
   - **dep:** T-16
 
 ## Fase 5 · Palpites e ranking
 
-- [ ] **T-20 · Registrar palpite**
+- [x] **T-20 · Registrar palpite**
   - `POST /guesses` (player, jogo aberto): normaliza a entrada, consulta `word_rankings` e grava em `guesses` com `guess_date` no fuso de São Paulo.
   - Tratar cada resposta do RF-2: aceito, palavra desconhecida, já chutou hoje, palavra repetida, jogo encerrado, acertou.
   - Erros de vocabulário e repetição **não** consomem o palpite do dia.
@@ -141,18 +141,18 @@
   - **dep:** T-14, T-17
   - **Pronto quando:** há testes para cada resposta e para dois acertos simultâneos (só um vence).
 
-- [ ] **T-21 · Ranking coletivo**
+- [x] **T-21 · Ranking coletivo**
   - `GET /ranking` (parcial HTMX): palavras distintas do jogo, ordenadas pela posição, com a contagem de pessoas e os palpites do usuário destacados.
   - Jogo encerrado: palavra secreta e vencedor no topo.
   - Polling HTMX a cada 30 s; após um palpite, a resposta atualiza o ranking na hora.
   - **dep:** T-20
 
-- [ ] **T-22 · Cores e barra de proximidade**
-  - `static/js/colors.js` com `rankToColor(rank, total)` em escala logarítmica e tons pastéis.
+- [x] **T-22 · Cores e barra de proximidade**
+  - `rank_to_color(rank, total)` em escala logarítmica e tons pastéis, calculado **no servidor** (`app/guesses/presentation.py`): como o HTMX troca HTML pronto, a cor já chega certa em cada atualização, sem JavaScript.
   - Barra de proximidade proporcional; a posição sempre aparece como número.
   - **dep:** T-21
 
-- [ ] **T-23 · Estados do campo de palpite**
+- [x] **T-23 · Estados do campo de palpite**
   - Desabilitado com mensagem quando: jogo bloqueado, usuário não é player, já chutou hoje (com contagem regressiva até a virada) ou jogo encerrado.
   - Botão "Entrar para jogar" para visitantes.
   - **dep:** T-20

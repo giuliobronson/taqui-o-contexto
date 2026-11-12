@@ -1,0 +1,15 @@
+{# Collective ranking, closest first (PRD RF-3). Polled by HTMX every 30 s. #}
+{% if page.rows %}
+  <ol class="ranking">
+    {% for row in page.rows %}
+      <li class="rank-row{% if row.mine %} is-mine{% endif %}"
+          style="--row-color: {{ row.rank | rank_color(page.total) }}; --proximity: {{ (row.proximity(page.total) * 100) | round(1) }}%">
+        <span class="rank-word">{{ row.word }}</span>
+        {% if row.players > 1 %}<span class="rank-players" title="{{ row.players }} pessoas tentaram">×{{ row.players }}</span>{% endif %}
+        <span class="rank-number">{{ row.rank }}</span>
+      </li>
+    {% endfor %}
+  </ol>
+{% else %}
+  <p class="muted">Nenhum palpite ainda.</p>
+{% endif %}
