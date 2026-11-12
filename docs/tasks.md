@@ -208,7 +208,7 @@
   - `GET/POST /admin/users`: lista de usuários; promover ou remover admin (não pode remover o próprio).
   - **dep:** T-28
 
-- [ ] **T-32 · Moderação do mural**
+- [x] **T-32 · Moderação do mural**
   - Botão de apagar dica visível para admins na página do jogo e no painel.
   - **dep:** T-25, T-28
 

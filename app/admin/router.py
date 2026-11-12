@@ -5,6 +5,7 @@ from fastapi import APIRouter, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 import app.guesses.presentation  # noqa: F401  (registers the template filters)
+import app.hints.presentation  # noqa: F401
 from app.admin.service import (
     AdminChangeError,
     GameForm,
@@ -29,6 +30,7 @@ from app.core.templates import templates
 from app.games.dependencies import Now, Session
 from app.games.models import Game
 from app.games.service import GameStateError, current_game
+from app.hints.service import list_hints
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -135,6 +137,8 @@ async def game_detail(
             "form": GameForm.from_game(summary.game),
             "editable": editable_fields(summary.game, summary.has_prize),
             "notice": NOTICES.get(notice),
+            "hints": await list_hints(session, summary.game),
+            "now": now,
         },
     )
 

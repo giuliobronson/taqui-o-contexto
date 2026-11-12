@@ -460,3 +460,24 @@ async def test_users_page_needs_admin(client, make_profile) -> None:
     assert (
         await client.post(f"/admin/users/{player.id}", data={"admin": "true"})
     ).status_code == 403
+
+
+# ---------- hint moderation (T-32) ----------
+
+
+async def test_admin_moderates_hints_from_the_panel(client, session, admin, make_profile) -> None:
+    from app.hints.models import Hint
+    from app.hints.service import post_hint
+
+    game = await _game(session, GameStatus.OPEN)
+    caio = await _member(session, make_profile, game, "Caio", MemberRole.WATCHER)
+    await post_hint(session, game, caio.id, "rima com pé")
+    hint = (await session.scalars(select(Hint))).one()
+
+    page = await client.get(f"/admin/games/{game.id}")
+    assert "rima com pé" in page.text and f'hx-delete="/hints/{hint.id}"' in page.text
+
+    assert (await client.delete(f"/hints/{hint.id}")).status_code == 200
+    await session.refresh(hint)
+    assert hint.deleted_by == admin.id
+    assert "rima com pé" not in (await client.get(f"/admin/games/{game.id}")).text

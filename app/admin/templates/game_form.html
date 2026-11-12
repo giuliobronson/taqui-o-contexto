@@ -76,4 +76,28 @@
     <button class="btn" type="submit">{% if summary %}Salvar{% else %}Criar jogo{% endif %}</button>
   {% endif %}
 </form>
+
+{% if summary %}
+  <section class="card admin-hints" aria-labelledby="admin-hints-title">
+    <h2 id="admin-hints-title">Mural de dicas ({{ hints | length }})</h2>
+    {% if hints %}
+      <ul class="hints">
+        {% for hint in hints %}
+          <li class="hint">
+            <header class="hint-meta">
+              <strong>{{ hint.author_name }}</strong>
+              <time class="muted small" datetime="{{ hint.created_at.isoformat() }}">{{ hint.created_at | time_ago(now) }}</time>
+              <button class="link-button small" type="button"
+                      hx-delete="/hints/{{ hint.id }}" hx-target="closest li" hx-swap="delete"
+                      hx-confirm="Apagar esta dica de {{ hint.author_name }}?">Apagar</button>
+            </header>
+            <p class="hint-body">{{ hint.body }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">Nenhuma dica.</p>
+    {% endif %}
+  </section>
+{% endif %}
 {% endblock %}
