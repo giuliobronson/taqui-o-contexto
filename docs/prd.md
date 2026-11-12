@@ -117,7 +117,7 @@ Existem dois níveis de papel:
   ```python
   def rank_to_color(rank: int, total: int) -> str:
       t = math.log(rank) / math.log(total)  # 0 = perto, 1 = longe
-      hue = round(120 * (1 - t))            # 120 = verde, 0 = vermelho
+      hue = round(120 * (1 - t))  # 120 = verde, 0 = vermelho
       return f"hsl({hue}, 55%, 82%)"
   ```
 

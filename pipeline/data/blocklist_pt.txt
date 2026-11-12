@@ -1,0 +1,18 @@
+# Offensive words kept out of the vocabulary (one per line). Extend as needed.
+arrombado
+babaca
+bosta
+buceta
+caralho
+corno
+cu
+cuzão
+foda
+foder
+fodido
+merda
+otário
+porra
+puta
+puto
+viado

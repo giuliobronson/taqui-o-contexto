@@ -1,0 +1,5 @@
+# Fixes for wrong lemmas.  Format:  form = lemma
+# Use "word = word" to keep a word as its own vocabulary entry.
+quadrinhos = quadrinhos
+quadrinho = quadrinhos
+melhores = melhor

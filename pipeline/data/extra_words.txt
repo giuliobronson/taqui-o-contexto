@@ -1,0 +1,12 @@
+# Words or expressions always added to the vocabulary, bypassing the filters.
+# Format:  word | variant, variant, ...
+# Variants are what a player may type; they map to the word.
+
+# Game 1: secret word and the loanwords that lead to it.
+spy family | spy x family, spy×family, spyxfamily, spy-family, spy × family
+mangá | mangás
+otaku | otakus
+cosplay | cosplays
+shonen | shounen
+mangaká | mangakás
+kawaii

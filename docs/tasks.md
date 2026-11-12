@@ -62,15 +62,17 @@
 - [x] **T-09 · Escolher o modelo de embeddings**
   - Decidido: OpenAI `text-embedding-3-large` com 1.024 dimensões, guardado como `halfvec`. Registrado no PRD (RF-8).
 
-- [ ] **T-10 · Filtros do vocabulário** 🔒 (flexões)
-  - Frequência mínima, sem stopwords, sem nomes próprios, sem números, sem termos ofensivos.
-  - Decidir e implementar a lematização ("casas" → "casa"), se for adotada.
+- [x] **T-10 · Filtros do vocabulário**
+  - Sem stopwords, sem nomes próprios, sem números, sem termos ofensivos; só palavras conhecidas do português (`simplemma`).
+  - Lematização adotada: flexões viram `word_forms` ("casas" → "casa"), com proteção contra lemas errados por frequência e exceções em `pipeline/data/lemma_overrides.txt`.
+  - Lista de extras (`pipeline/data/extra_words.txt`) para palavras e expressões fora dos filtros, com variações ("spy x family" → "spy family").
   - **dep:** T-09
 
 - [ ] **T-11 · `pipeline/build_vocabulary.py`**
   - Monta a lista de palavras com o `wordfreq`, aplica os filtros, gera os vetores na API da OpenAI em lotes e grava em `vocabulary`.
   - Migration trocando `vocabulary.embedding` para `halfvec(1024)`.
   - Parâmetros: `model_version`, tamanho máximo do vocabulário. Precisa de `OPENAI_API_KEY` no `.env`.
+  - ✅ Script, migration e `--dry-run` prontos (≈40 mil palavras, ≈73 mil formas). ⏳ Falta rodar com a OpenAI e conferir os vizinhos.
   - Idempotente: rodar de novo com o mesmo `model_version` substitui as linhas.
   - **dep:** T-08, T-10
   - **Pronto quando:** a tabela tem ~50 mil palavras e uma consulta de vizinhos (`ORDER BY embedding <=> ...`) devolve resultados coerentes.
@@ -240,6 +242,5 @@
 
 | Questão | Tarefas bloqueadas |
 |---|---|
-| Flexões ("casas" → "casa") | T-10 |
 | Origem dos cupons | T-26 |
 | Entre jogos: o próximo começa logo ou espera o `starts_at`? | T-16 (comportamento após o fim antecipado) |
