@@ -191,9 +191,12 @@ Existem dois níveis de papel:
 O trabalho fica dividido em duas etapas:
 
 1. **Offline, uma vez por modelo** (`pipeline/build_vocabulary.py`):
-   - carrega embeddings em português;
-   - filtra o vocabulário (frequência mínima, sem stopwords, sem nomes próprios, sem termos ofensivos, formas lematizadas);
-   - grava cada palavra e o seu vetor na tabela `vocabulary` (extensão **pgvector** do Postgres, disponível no Supabase).
+   - monta a lista de palavras a partir das mais frequentes do português (pacote `wordfreq`);
+   - filtra o vocabulário (sem stopwords, sem nomes próprios, sem números, sem termos ofensivos, formas lematizadas);
+   - gera os vetores com o modelo **`text-embedding-3-large` da OpenAI, reduzido para 1.024 dimensões** (parâmetro `dimensions` da API);
+   - grava cada palavra e o seu vetor na tabela `vocabulary` em meia precisão (`halfvec` do **pgvector**, disponível no Supabase), o que dá cerca de 100 MB para 50 mil palavras.
+
+   A OpenAI só é usada nessa etapa, nunca durante o jogo. Gerar o vocabulário inteiro custa centavos.
 2. **No banco, a cada jogo criado ou palavra alterada:** a aplicação calcula o ranking com uma única consulta SQL e grava em `word_rankings`:
 
    ```sql
@@ -216,7 +219,7 @@ Assim, o admin cria jogos pelo painel sem rodar scripts, e o servidor web não p
 profiles       (id → auth.users.id, display_name, avatar_url, email,
                 is_admin BOOLEAN DEFAULT false, created_at)
 
-vocabulary     (model_version, word, embedding VECTOR(300))
+vocabulary     (model_version, word, embedding HALFVEC(1024))
                  PK (model_version, word)
 
 games          (id, secret_word, model_version, vocabulary_size,
@@ -268,6 +271,7 @@ Decisões:
 - **Backend:** Python + FastAPI.
 - **Frontend:** templates Jinja servidos pelo FastAPI + HTMX para as atualizações parciais.
 - **Banco e autenticação:** Supabase (Postgres + pgvector + Auth com Google).
+- **Embeddings:** OpenAI `text-embedding-3-large` (1.024 dimensões), usado apenas no pipeline offline.
 - **Sessão:** o token do Supabase fica num cookie HTTP-only. A dependência `current_user` valida o JWT a cada requisição; `require_admin` e `require_game_role("player" | "watcher")` protegem as rotas.
 - O código é escrito em inglês; os textos da interface, em português.
 
@@ -347,5 +351,4 @@ Dependências entre features:
 
 - **Origem dos cupons:** códigos gerados pelo sistema ou lista fornecida por um parceiro? Qual é o prêmio?
 - **Entre jogos:** quando um jogo termina antes da data de fim, o próximo começa imediatamente ou espera o seu `starts_at`?
-- **Embeddings:** qual modelo usar (NILC word2vec/GloVe, fastText `cc.pt.300`)? Vamos comparar a qualidade dos rankings.
 - **Flexões:** palpites como "casas" devem ser convertidos para "casa"? Se sim, precisamos de uma tabela de formas → lema.

@@ -22,11 +22,11 @@
   - `.env.example` documentando cada variável.
   - **dep:** T-02
 
-- [ ] **T-04 · Supabase local**
+- [x] **T-04 · Supabase local**
   - Supabase CLI (`supabase init` / `supabase start`) para desenvolvimento local.
   - Habilitar a extensão `vector` (pgvector).
   - Configurar o provedor Google no Supabase Auth (local e produção).
-  - ✅ Supabase local rodando (`npx supabase@2 start`), com serviços não usados desligados. ⏳ Falta criar as credenciais OAuth do Google.
+  - ✅ Supabase local rodando (`npx supabase@2 start`), com serviços não usados desligados e o provedor Google configurado (credenciais em `supabase/.env`).
   - **Pronto quando:** o app conecta no Postgres local e o login com Google funciona no painel do Supabase.
 
 - [x] **T-05 · Layout base e front**
@@ -59,9 +59,8 @@
 
 ## Fase 2 · Vocabulário
 
-- [ ] **T-09 · Escolher o modelo de embeddings** 🔒
-  - Comparar NILC (word2vec/GloVe) e fastText `cc.pt.300` com algumas palavras de teste: os vizinhos fazem sentido?
-  - Registrar a escolha e o `model_version` no PRD.
+- [x] **T-09 · Escolher o modelo de embeddings**
+  - Decidido: OpenAI `text-embedding-3-large` com 1.024 dimensões, guardado como `halfvec`. Registrado no PRD (RF-8).
 
 - [ ] **T-10 · Filtros do vocabulário** 🔒 (flexões)
   - Frequência mínima, sem stopwords, sem nomes próprios, sem números, sem termos ofensivos.
@@ -69,8 +68,9 @@
   - **dep:** T-09
 
 - [ ] **T-11 · `pipeline/build_vocabulary.py`**
-  - Lê o arquivo de embeddings, aplica os filtros, normaliza os vetores e grava em `vocabulary` em lotes.
-  - Parâmetros: caminho do arquivo, `model_version`, tamanho máximo do vocabulário.
+  - Monta a lista de palavras com o `wordfreq`, aplica os filtros, gera os vetores na API da OpenAI em lotes e grava em `vocabulary`.
+  - Migration trocando `vocabulary.embedding` para `halfvec(1024)`.
+  - Parâmetros: `model_version`, tamanho máximo do vocabulário. Precisa de `OPENAI_API_KEY` no `.env`.
   - Idempotente: rodar de novo com o mesmo `model_version` substitui as linhas.
   - **dep:** T-08, T-10
   - **Pronto quando:** a tabela tem ~50 mil palavras e uma consulta de vizinhos (`ORDER BY embedding <=> ...`) devolve resultados coerentes.
@@ -240,7 +240,6 @@
 
 | Questão | Tarefas bloqueadas |
 |---|---|
-| Qual modelo de embeddings usar | T-09, T-10, T-11 |
 | Flexões ("casas" → "casa") | T-10 |
 | Origem dos cupons | T-26 |
 | Entre jogos: o próximo começa logo ou espera o `starts_at`? | T-16 (comportamento após o fim antecipado) |
