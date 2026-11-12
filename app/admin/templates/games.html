@@ -2,6 +2,7 @@
 {% block title %}Admin · Taqui o Contexto{% endblock %}
 
 {% block content %}
+{% set admin_tab = "games" %}{% include "admin/_nav.html" %}
 <section class="admin-head">
   <h1>Jogos</h1>
   <a class="btn" href="/admin/games/new">Novo jogo</a>

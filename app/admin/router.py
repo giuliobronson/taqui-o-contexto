@@ -1,11 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Form, HTTPException, Request, status
+from fastapi import APIRouter, Form, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 import app.guesses.presentation  # noqa: F401  (registers the template filters)
 from app.admin.service import (
+    AdminChangeError,
     GameForm,
     RoleChangeError,
     create_game,
@@ -15,7 +16,9 @@ from app.admin.service import (
     game_members,
     game_summaries,
     game_summary,
+    list_users,
     make_watcher,
+    set_admin,
     unlock,
     update_game,
     validate,
@@ -36,6 +39,8 @@ NOTICES = {
     "finished": "Jogo encerrado.",
     "deleted": "Jogo excluído.",
     "watcher": "Agora é watcher neste jogo.",
+    "promoted": "Usuário promovido a admin.",
+    "demoted": "Papel de admin removido.",
 }
 
 FormField = Annotated[str, Form(max_length=300)]
@@ -255,3 +260,40 @@ async def change_role(
     except RoleChangeError as error:
         raise HTTPException(status.HTTP_409_CONFLICT, str(error)) from None
     return _redirect(request, f"/admin/games/{game.id}/members?notice=watcher")
+
+
+@router.get("/users", response_class=HTMLResponse)
+async def users_page(
+    request: Request,
+    user: AdminUser,
+    session: Session,
+    now: Now,
+    q: Annotated[str, Query(max_length=100)] = "",
+    notice: str | None = None,
+) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request,
+        "admin/users.html",
+        {
+            "user": user,
+            "users": await list_users(session, now, q),
+            "q": q,
+            "notice": NOTICES.get(notice),
+        },
+    )
+
+
+@router.post("/users/{user_id}")
+async def change_admin(
+    user_id: uuid.UUID,
+    request: Request,
+    user: AdminUser,
+    session: Session,
+    now: Now,
+    admin: Annotated[bool, Form()],
+) -> Response:
+    try:
+        await set_admin(session, user, user_id, admin, now)
+    except AdminChangeError as error:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(error)) from None
+    return _redirect(request, f"/admin/users?notice={'promoted' if admin else 'demoted'}")

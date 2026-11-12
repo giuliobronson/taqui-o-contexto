@@ -204,7 +204,7 @@
   - `POST /admin/games/{id}/members/{user_id}/role`: player → watcher, só se ele não tiver palpites. Nunca watcher → player.
   - **dep:** T-15, T-28
 
-- [ ] **T-31 · Gestão de admins**
+- [x] **T-31 · Gestão de admins**
   - `GET/POST /admin/users`: lista de usuários; promover ou remover admin (não pode remover o próprio).
   - **dep:** T-28
 

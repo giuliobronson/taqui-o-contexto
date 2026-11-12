@@ -5,13 +5,14 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from sqlalchemy import delete, func, select, text
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.models import Profile
 from app.core.config import get_settings
 from app.games.models import ACTIVE_STATUSES, Game, GameMember, GameStatus, MemberRole
 from app.games.ranking import build_ranking, resolve_word, word_in_vocabulary
-from app.games.service import GameStateError, finish_game, unlock_game
+from app.games.service import GameStateError, current_game, finish_game, unlock_game
 from app.guesses.models import Guess
 from app.prizes.models import Prize
 from app.prizes.service import award_prize
@@ -360,3 +361,85 @@ async def make_watcher(session: AsyncSession, game: Game, user_id: uuid.UUID) ->
         raise RoleChangeError("Este player já deu palpites neste jogo.")
     member.role = MemberRole.WATCHER
     await session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Admins (PRD RF-6 "Admins")
+# ---------------------------------------------------------------------------
+
+
+class AdminChangeError(Exception):
+    pass
+
+
+@dataclass(frozen=True)
+class UserRow:
+    profile: Profile
+    role_in_active_game: MemberRole | None
+    from_config: bool  # listed in ADMIN_EMAILS: always promoted again on login
+
+
+async def list_users(
+    session: AsyncSession, now: datetime, query: str = "", limit: int = 200
+) -> list[UserRow]:
+    """Admins first, then by name. `query` filters by name or e-mail."""
+    active = await current_game(session, now)
+    role = (
+        select(GameMember.role)
+        .where(GameMember.game_id == active.id, GameMember.user_id == Profile.id)
+        .scalar_subquery()
+        if active
+        else None
+    )
+    columns = [Profile] + ([role.label("role")] if role is not None else [])
+    stmt = select(*columns).order_by(Profile.is_admin.desc(), func.lower(Profile.display_name))
+    if query.strip():
+        pattern = f"%{query.strip().lower()}%"
+        stmt = stmt.where(
+            func.lower(Profile.display_name).like(pattern) | func.lower(Profile.email).like(pattern)
+        )
+    config = set(get_settings().admin_emails)
+    rows = await session.execute(stmt.limit(limit))
+    return [
+        UserRow(
+            profile=row.Profile,
+            role_in_active_game=row.role if role is not None else None,
+            from_config=row.Profile.email.lower() in config,
+        )
+        for row in rows
+    ]
+
+
+async def set_admin(
+    session: AsyncSession, actor: Profile, target_id: uuid.UUID, make_admin: bool, now: datetime
+) -> Profile:
+    """Promote or demote a user. An admin cannot demote themself.
+
+    A demoted admin has seen the secret word of the active game, so they come back
+    to it as a watcher, never as a player.
+    """
+    if target_id == actor.id:
+        raise AdminChangeError("Você não pode mudar o seu próprio papel de admin.")
+    target = await session.get(Profile, target_id, with_for_update=True)
+    if target is None:
+        raise AdminChangeError("Usuário não encontrado.")
+    if target.is_admin == make_admin:
+        return target
+
+    if not make_admin:
+        if target.email.lower() in get_settings().admin_emails:
+            raise AdminChangeError(
+                "Este e-mail está em ADMIN_EMAILS: remova-o da configuração primeiro."
+            )
+        active = await current_game(session, now)
+        if active is not None:
+            await session.execute(
+                insert(GameMember)
+                .values(game_id=active.id, user_id=target.id, role=MemberRole.WATCHER)
+                .on_conflict_do_update(
+                    index_elements=["game_id", "user_id"], set_={"role": MemberRole.WATCHER}
+                )
+            )
+    target.is_admin = make_admin
+    await session.commit()
+    return target

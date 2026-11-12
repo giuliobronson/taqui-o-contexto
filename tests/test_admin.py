@@ -18,6 +18,7 @@ from app.games.models import (
     WordRanking,
 )
 from app.games.ranking import build_ranking
+from app.guesses.models import Guess
 from app.guesses.service import submit_guess
 from app.prizes.service import prizes_of
 from tests.conftest import mint_token
@@ -379,3 +380,83 @@ async def test_members_page_needs_admin(client, session, make_profile) -> None:
     assert (await client.get(f"/admin/games/{game.id}/members")).status_code == 403
     url = f"/admin/games/{game.id}/members/{player.id}/role"
     assert (await client.post(url)).status_code == 403
+
+
+# ---------- admins (T-31) ----------
+
+
+async def test_users_page_lists_and_searches(client, session, admin, make_profile) -> None:
+    await make_profile(name="Ana Souza")
+    await make_profile(name="Bia Lima")
+    page = await client.get("/admin/users")
+    assert "Ana Souza" in page.text and "Bia Lima" in page.text
+    assert "(você)" in page.text
+    found = await client.get("/admin/users", params={"q": "souza"})
+    assert "Ana Souza" in found.text and "Bia Lima" not in found.text
+
+
+async def test_promote_user(client, session, admin, make_profile) -> None:
+    ana = await make_profile(name="Ana")
+    response = await client.post(f"/admin/users/{ana.id}", data={"admin": "true"})
+    assert response.headers["location"] == "/admin/users?notice=promoted"
+    await session.refresh(ana)
+    assert ana.is_admin
+
+
+async def test_promoted_member_stops_playing(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.OPEN)
+    ana = await _member(session, make_profile, game, "Ana")
+    await client.post(f"/admin/users/{ana.id}", data={"admin": "true"})
+    client.cookies.set(ACCESS_COOKIE, mint_token(ana.id, ana.email))
+    response = await client.post("/guesses", data={"word": "chá"})
+    assert "está na posição" not in response.text
+    assert await session.scalar(select(func.count()).select_from(Guess)) == 0
+    assert "Administradores acompanham o jogo" in (await client.get("/")).text
+
+
+async def test_demoted_admin_returns_as_watcher(client, session, admin, make_profile) -> None:
+    game = await _game(session, GameStatus.OPEN)
+    other = await make_profile(is_admin=True, name="Caio")
+    response = await client.post(f"/admin/users/{other.id}", data={"admin": "false"})
+    assert response.status_code == 303
+    await session.refresh(other)
+    assert not other.is_admin
+    member = await session.get(GameMember, (game.id, other.id))
+    assert member is not None and member.role == MemberRole.WATCHER
+
+
+async def test_demoted_admin_without_active_game(client, session, admin, make_profile) -> None:
+    other = await make_profile(is_admin=True, name="Caio")
+    await client.post(f"/admin/users/{other.id}", data={"admin": "false"})
+    await session.refresh(other)
+    assert not other.is_admin
+    assert (await session.scalars(select(GameMember))).all() == []
+
+
+async def test_cannot_change_own_admin_role(client, session, admin) -> None:
+    response = await client.post(f"/admin/users/{admin.id}", data={"admin": "false"})
+    assert response.status_code == 409
+    await session.refresh(admin)
+    assert admin.is_admin
+
+
+async def test_config_admin_cannot_be_demoted(
+    client, session, admin, make_profile, monkeypatch
+) -> None:
+    other = await make_profile(is_admin=True, name="Dono")
+    monkeypatch.setattr(get_settings(), "admin_emails", [other.email])
+    page = await client.get("/admin/users")
+    assert "Definido em ADMIN_EMAILS" in page.text
+    response = await client.post(f"/admin/users/{other.id}", data={"admin": "false"})
+    assert response.status_code == 409
+    await session.refresh(other)
+    assert other.is_admin
+
+
+async def test_users_page_needs_admin(client, make_profile) -> None:
+    player = await make_profile()
+    client.cookies.set(ACCESS_COOKIE, mint_token(player.id, player.email))
+    assert (await client.get("/admin/users")).status_code == 403
+    assert (
+        await client.post(f"/admin/users/{player.id}", data={"admin": "true"})
+    ).status_code == 403
