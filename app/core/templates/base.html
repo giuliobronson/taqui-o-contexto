@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Taqui o Contexto{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js" defer></script>
+  <script src="{{ url_for('static', path='js/colors.js') }}" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">Taqui o <span>Contexto</span></a>
+    <nav class="site-nav">
+      {% block nav %}
+        {% if user %}
+          {% if user.is_admin %}<a href="/admin">Admin</a>{% endif %}
+          <span class="user">
+            {% if user.avatar_url %}<img src="{{ user.avatar_url }}" alt="" class="avatar">{% endif %}
+            {{ user.display_name }}
+          </span>
+          <form method="post" action="/auth/logout"><button class="btn btn-ghost">Sair</button></form>
+        {% else %}
+          <a class="btn" href="/auth/login">Entrar com Google</a>
+        {% endif %}
+      {% endblock %}
+    </nav>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
