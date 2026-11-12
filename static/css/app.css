@@ -442,3 +442,21 @@ h2 {
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
+
+.link-button {
+  margin-left: auto;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  color: var(--danger);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}

@@ -166,7 +166,7 @@
   - `POST /hints` (watcher, jogo aberto): limite de 280 caracteres; rejeitar textos que contenham a palavra secreta (sem acentos e sem diferença de maiúsculas).
   - **dep:** T-14, T-16
 
-- [ ] **T-25 · Apagar dicas**
+- [x] **T-25 · Apagar dicas**
   - `DELETE /hints/{id}`: o autor (watcher) ou um admin; preenche `deleted_at` e `deleted_by`.
   - **dep:** T-24
 

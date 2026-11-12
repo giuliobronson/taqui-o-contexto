@@ -4,6 +4,7 @@ from datetime import datetime
 
 from app.core.templates import templates
 from app.guesses.presentation import local_datetime
+from app.hints.service import can_delete
 
 
 def time_ago(moment: datetime, now: datetime) -> str:
@@ -24,3 +25,4 @@ def time_ago(moment: datetime, now: datetime) -> str:
 
 
 templates.env.filters["time_ago"] = time_ago
+templates.env.globals["can_delete_hint"] = can_delete

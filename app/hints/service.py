@@ -15,6 +15,14 @@ from app.games.models import Game, GameStatus, WordForm
 from app.hints.models import MAX_HINT_LENGTH, Hint
 
 
+class HintNotFound(Exception):
+    pass
+
+
+class HintForbidden(Exception):
+    pass
+
+
 class HintOutcome(enum.StrEnum):
     POSTED = "posted"
     EMPTY = "empty"
@@ -109,3 +117,21 @@ async def list_hints(session: AsyncSession, game: Game) -> list[HintView]:
         )
         for hint, author in rows
     ]
+
+
+def can_delete(user: Profile | None, author_id: uuid.UUID) -> bool:
+    """The author (a watcher) or any admin may delete a hint (PRD RF-4)."""
+    return user is not None and (user.is_admin or user.id == author_id)
+
+
+async def delete_hint(session: AsyncSession, hint_id: int, user: Profile, now: datetime) -> Hint:
+    """Soft delete: the hint stays in the table with `deleted_at` and `deleted_by`."""
+    hint = await session.get(Hint, hint_id)
+    if hint is None or hint.deleted_at is not None:
+        raise HintNotFound
+    if not can_delete(user, hint.author_id):
+        raise HintForbidden
+    hint.deleted_at = now
+    hint.deleted_by = user.id
+    await session.commit()
+    return hint

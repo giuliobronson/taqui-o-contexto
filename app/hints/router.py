@@ -1,14 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
 import app.hints.presentation  # noqa: F401  (registers the template filters)
-from app.core.security import OptionalUser
+from app.core.security import CurrentUser, OptionalUser
 from app.core.templates import templates
 from app.games.dependencies import Now, Session, WatcherMembership
 from app.games.page import build_game_page
-from app.hints.service import post_hint
+from app.hints.service import HintForbidden, HintNotFound, delete_hint, post_hint
 
 router = APIRouter(prefix="/hints", tags=["hints"])
 
@@ -36,3 +36,17 @@ async def create_hint(
     return templates.TemplateResponse(
         request, "hints/hint_response.html", {**page.as_context(), "result": result}
     )
+
+
+@router.delete("/{hint_id}", response_class=HTMLResponse)
+async def remove_hint(
+    hint_id: int, request: Request, user: CurrentUser, session: Session, now: Now
+) -> HTMLResponse:
+    try:
+        await delete_hint(session, hint_id, user, now)
+    except HintNotFound:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Dica não encontrada.") from None
+    except HintForbidden:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Você não pode apagar esta dica.") from None
+    page = await build_game_page(session, user, now)
+    return templates.TemplateResponse(request, "hints/board.html", page.as_context())

@@ -9,6 +9,11 @@
           {% endif %}
           <strong>{{ hint.author_name }}</strong>
           <time class="muted small" datetime="{{ hint.created_at.isoformat() }}">{{ hint.created_at | time_ago(page.now) }}</time>
+          {% if can_delete_hint(user, hint.author_id) %}
+            <button class="link-button small" type="button"
+                    hx-delete="/hints/{{ hint.id }}" hx-target="#hints" hx-swap="innerHTML"
+                    hx-confirm="Apagar esta dica?">Apagar</button>
+          {% endif %}
         </header>
         <p class="hint-body">{{ hint.body }}</p>
       </li>

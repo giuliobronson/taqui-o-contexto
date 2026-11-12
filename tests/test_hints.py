@@ -209,3 +209,62 @@ async def test_admin_cannot_post(client, open_game, make_profile, at_noon) -> No
 
 async def test_post_hint_requires_login(client, open_game, at_noon) -> None:
     assert (await client.post("/hints", data={"body": "dica"})).status_code == 401
+
+
+# ---------- deleting (T-25) ----------
+
+
+async def _posted(session, game, author) -> Hint:
+    await post_hint(session, game, author.id, "Pense em espiões")
+    return (await session.scalars(select(Hint))).one()
+
+
+async def test_author_deletes_own_hint(client, session, open_game, watcher, at_noon) -> None:
+    hint = await _posted(session, open_game, watcher)
+    _login(client, watcher)
+    page = await client.get("/")
+    assert f'hx-delete="/hints/{hint.id}"' in page.text
+
+    response = await client.delete(f"/hints/{hint.id}")
+    assert response.status_code == 200
+    assert "Pense em espiões" not in response.text
+    await session.refresh(hint)
+    assert (hint.deleted_at, hint.deleted_by) == (NOON, watcher.id)
+    assert await list_hints(session, open_game) == []
+
+
+async def test_admin_deletes_any_hint(
+    client, session, open_game, watcher, make_profile, at_noon
+) -> None:
+    hint = await _posted(session, open_game, watcher)
+    admin = await make_profile(is_admin=True)
+    _login(client, admin)
+    assert f'hx-delete="/hints/{hint.id}"' in (await client.get("/")).text
+    assert (await client.delete(f"/hints/{hint.id}")).status_code == 200
+    await session.refresh(hint)
+    assert hint.deleted_by == admin.id
+
+
+async def test_others_cannot_delete(
+    client, session, open_game, watcher, player, make_profile, at_noon
+) -> None:
+    hint = await _posted(session, open_game, watcher)
+    other_watcher = await _member(session, make_profile, open_game, MemberRole.WATCHER, "Caio")
+    for profile in (player, other_watcher):
+        _login(client, profile)
+        assert "hx-delete" not in (await client.get("/")).text
+        assert (await client.delete(f"/hints/{hint.id}")).status_code == 403
+    client.cookies.clear()
+    assert (await client.delete(f"/hints/{hint.id}")).status_code == 401
+    await session.refresh(hint)
+    assert hint.deleted_at is None
+
+
+async def test_deleting_twice_or_unknown_is_404(
+    client, session, open_game, watcher, at_noon
+) -> None:
+    hint = await _posted(session, open_game, watcher)
+    _login(client, watcher)
+    assert (await client.delete(f"/hints/{hint.id}")).status_code == 200
+    assert (await client.delete(f"/hints/{hint.id}")).status_code == 404
+    assert (await client.delete("/hints/999999")).status_code == 404
