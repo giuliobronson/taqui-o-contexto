@@ -8,7 +8,7 @@ from app.core.security import CurrentUser, OptionalUser
 from app.core.templates import templates
 from app.games.dependencies import Now, Session
 from app.games.page import FormState, build_game_page
-from app.guesses.service import submit_guess
+from app.guesses.service import Outcome, submit_guess
 
 router = APIRouter(tags=["guesses"])
 
@@ -27,9 +27,13 @@ async def post_guess(
     if page.form_state == FormState.READY and page.game is not None:
         result = await submit_guess(session, page.game, user.id, word, now)
         page = await build_game_page(session, user, now)
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         request, "guesses/guess_response.html", {**page.as_context(), "result": result}
     )
+    if result is not None and result.outcome == Outcome.WON:
+        # The whole page changes (game over): reload it with the victory modal open.
+        response.headers["HX-Redirect"] = "/?celebrate=1"
+    return response
 
 
 @router.get("/ranking", response_class=HTMLResponse)

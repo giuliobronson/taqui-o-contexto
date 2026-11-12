@@ -179,7 +179,7 @@
   - `GET /prizes/me`: devolve o cupom do vencedor.
   - **dep:** T-16
 
-- [ ] **T-27 · Modal de vitória e cupom de rasgar**
+- [x] **T-27 · Modal de vitória e cupom de rasgar**
   - Modal com parabéns, palavra secreta e o cupom: borda tracejada, recortes semicirculares e linha picotada.
   - Animação de "rasgar" por clique ou arrasto (mouse e toque), revelando o código; botão "Copiar código".
   - Link "Meu prêmio" para reabrir o cupom.

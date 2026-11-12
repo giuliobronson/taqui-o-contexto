@@ -1,5 +1,7 @@
 {% extends "core/base.html" %}
 
+{% block head %}<script src="{{ url_for('static', path='js/coupon.js') }}" defer></script>{% endblock %}
+
 {% block content %}
 {% if not game %}
   <section class="card empty-state">
@@ -38,10 +40,9 @@
         {% else %}Ninguém acertou desta vez.{% endif %}
       </p>
       {% if page.is_winner %}
-        {% if page.prize %}
-          {% with prize = page.prize %}{% include "prizes/coupon.html" %}{% endwith %}
-        {% else %}
-          <p class="muted">Seu cupom ainda vai ser cadastrado pelo administrador. Volte aqui ou em <a href="/prizes/me">Meu prêmio</a>.</p>
+        <button class="btn" type="button" data-open-dialog="prize-modal">🎁 Meu prêmio</button>
+        {% if not page.prize %}
+          <p class="muted small">Seu cupom ainda vai ser cadastrado pelo administrador.</p>
         {% endif %}
       {% endif %}
       {% if page.next_game %}
@@ -83,5 +84,7 @@
       </div>
     </aside>
   </div>
+
+  {% if page.is_winner %}{% include "prizes/prize_modal.html" %}{% endif %}
 {% endif %}
 {% endblock %}

@@ -652,3 +652,243 @@ h2 {
   align-items: center;
   gap: 8px;
 }
+
+/* ---------- Victory modal ---------- */
+
+.prize-modal {
+  width: calc(100% - 2 * var(--gutter));
+  max-width: 440px;
+  padding: 28px 24px 24px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgb(60 40 20 / 0.25);
+  text-align: center;
+}
+
+.prize-modal::backdrop {
+  background: rgb(58 49 41 / 0.5);
+}
+
+.prize-modal h2 {
+  font-size: 1.4rem;
+}
+
+.prize-modal-emoji {
+  margin: 0;
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.prize-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--surface-muted);
+}
+
+.icon-button:focus-visible {
+  outline: 3px solid var(--accent);
+}
+
+/* Phones: the modal takes the whole screen. */
+@media (max-width: 600px) {
+  .prize-modal {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .prize-modal[open] {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+/* ---------- Tear-off coupon ---------- */
+
+.prize-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ticket {
+  --ticket-bg: hsl(45, 90%, 94%);
+  --ticket-edge: hsl(35, 55%, 55%);
+  --cutout: var(--surface);
+  position: relative;
+  margin: 16px auto 0;
+  max-width: 380px;
+  border: 2px dashed var(--ticket-edge);
+  border-radius: 16px;
+  background: var(--ticket-bg);
+  text-align: center;
+}
+
+.ticket p {
+  margin: 2px 0;
+}
+
+.ticket-main {
+  padding: 18px 18px 14px;
+}
+
+.ticket-kicker {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: hsl(30, 40%, 38%);
+}
+
+.ticket-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+/* Perforated line with a semicircular notch on each side. */
+.ticket-perforation {
+  position: relative;
+  height: 0;
+  border-top: 3px dotted var(--ticket-edge);
+  margin: 0 18px;
+}
+
+.ticket-perforation::before,
+.ticket-perforation::after {
+  content: "";
+  position: absolute;
+  top: -15px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--cutout);
+  border: 2px dashed var(--ticket-edge);
+}
+
+.ticket-perforation::before {
+  left: -34px;
+  clip-path: inset(0 0 0 50%);
+}
+
+.ticket-perforation::after {
+  right: -34px;
+  clip-path: inset(0 50% 0 0);
+}
+
+.ticket-bottom {
+  position: relative;
+  min-height: 128px;
+}
+
+.ticket-code-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px 18px;
+}
+
+.ticket-code {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--surface);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* The stub only exists once the script sealed the coupon. */
+.ticket-stub {
+  display: none;
+}
+
+.ticket.is-sealed .ticket-stub,
+.ticket.is-tearing .ticket-stub {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  border: 0;
+  border-radius: 0 0 14px 14px;
+  background:
+    repeating-linear-gradient(-45deg, transparent 0 10px, rgb(255 255 255 / 0.25) 10px 20px),
+    hsl(35, 70%, 72%);
+  color: hsl(30, 45%, 22%);
+  font: inherit;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transform-origin: top left;
+  transform: translateY(var(--drag-y, 0)) rotate(var(--drag-rotate, 0deg));
+  transition: transform 0.2s ease;
+}
+
+.ticket.is-sealed .ticket-stub:active {
+  cursor: grabbing;
+  transition: none;
+}
+
+.ticket-stub:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.ticket-stub-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.ticket.is-sealed .ticket-code-area {
+  visibility: hidden;
+}
+
+.ticket.is-tearing .ticket-stub {
+  animation: tear-off 0.6s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes tear-off {
+  from {
+    transform: translateY(var(--drag-y, 0)) rotate(var(--drag-rotate, 0deg));
+    opacity: 1;
+  }
+  to {
+    transform: translateY(140%) rotate(14deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket-stub {
+    transition: none;
+  }
+}

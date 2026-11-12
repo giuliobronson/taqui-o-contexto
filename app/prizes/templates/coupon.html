@@ -1,7 +1,22 @@
-{# One coupon (PRD RF-5). The tear-off modal (T-27) builds on this markup. #}
-<article class="coupon" aria-label="Cupom do jogo #{{ prize.game_id }}">
-  <p class="muted small">Jogo #{{ prize.game_id }} · {{ prize.secret_word }}</p>
-  {% if prize.description %}<p class="coupon-description">{{ prize.description }}</p>{% endif %}
-  <p class="coupon-code">{{ prize.code }}</p>
-  <p class="muted small">Ganho em {{ prize.claimed_at | local_datetime }}</p>
-</article>
+{# Tear-off coupon (PRD RF-5). Without JavaScript the code is simply visible;
+   static/js/coupon.js seals it under the stub until the winner tears it off. #}
+<div class="ticket" data-ticket="game-{{ prize.game_id }}">
+  <div class="ticket-main">
+    <p class="ticket-kicker">Cupom · Jogo #{{ prize.game_id }}</p>
+    <p class="ticket-title">{{ prize.description or "Seu prêmio" }}</p>
+    <p class="muted small">Palavra: <strong>{{ prize.secret_word }}</strong> · {{ prize.claimed_at | local_datetime }}</p>
+  </div>
+  <div class="ticket-perforation" aria-hidden="true"></div>
+  <div class="ticket-bottom">
+    <div class="ticket-code-area" data-code>
+      <span class="sr-only">Código do cupom:</span>
+      <code class="ticket-code">{{ prize.code }}</code>
+      <button class="btn" type="button" data-copy="{{ prize.code }}">Copiar código</button>
+    </div>
+    <button class="ticket-stub" type="button" data-tear
+            aria-label="Rasgar o canhoto e revelar o código do cupom">
+      <span class="ticket-stub-title">✂ Rasgue aqui</span>
+      <span class="small">Toque ou arraste para baixo para revelar o código</span>
+    </button>
+  </div>
+</div>

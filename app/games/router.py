@@ -11,9 +11,13 @@ router = APIRouter(tags=["games"])
 
 
 @router.get("/", response_class=HTMLResponse)
-async def home(request: Request, user: OptionalUser, session: Session, now: Now) -> HTMLResponse:
+async def home(
+    request: Request, user: OptionalUser, session: Session, now: Now, celebrate: bool = False
+) -> HTMLResponse:
     page = await build_game_page(session, user, now)
-    return templates.TemplateResponse(request, "games/home.html", page.as_context())
+    # celebrate=1 comes from the winning guess: open the victory modal right away.
+    context = {**page.as_context(), "celebrate": celebrate and page.is_winner}
+    return templates.TemplateResponse(request, "games/home.html", context)
 
 
 @router.get("/games/{game_id}", response_class=HTMLResponse)

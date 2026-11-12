@@ -157,3 +157,50 @@ async def test_winner_without_code_is_told_to_wait(
     _login(client, player)
     await client.post("/guesses", data={"word": "café"})
     assert "ainda vai ser cadastrado" in (await client.get("/")).text
+
+
+# ---------- victory modal (T-27) ----------
+
+
+async def test_winning_guess_reloads_with_modal(
+    client, session, make_open_game, player, at_noon
+) -> None:
+    game = await make_open_game()
+    await _join(session, game, player)
+    _login(client, player)
+    response = await client.post("/guesses", data={"word": "café"}, headers={"HX-Request": "true"})
+    assert response.headers["HX-Redirect"] == "/?celebrate=1"
+
+    page = await client.get("/", params={"celebrate": "1"})
+    assert 'id="prize-modal"' in page.text and "data-autoshow" in page.text
+    assert "Parabéns, você acertou!" in page.text
+    assert "data-ticket=" in page.text and CODE in page.text
+    assert "js/coupon.js" in page.text
+
+    reload = await client.get("/")
+    assert 'id="prize-modal"' in reload.text and "data-autoshow" not in reload.text
+    assert 'data-open-dialog="prize-modal"' in reload.text
+
+
+async def test_wrong_guess_does_not_redirect(
+    client, session, make_open_game, player, at_noon
+) -> None:
+    game = await make_open_game()
+    await _join(session, game, player)
+    _login(client, player)
+    response = await client.post("/guesses", data={"word": "chá"}, headers={"HX-Request": "true"})
+    assert "HX-Redirect" not in response.headers
+
+
+async def test_others_never_get_the_modal(
+    client, session, make_open_game, player, make_profile, at_noon
+) -> None:
+    game = await make_open_game()
+    other = await make_profile(name="Bia")
+    await _join(session, game, player)
+    await _join(session, game, other)
+    await submit_guess(session, game, player.id, "café", NOON)
+
+    _login(client, other)
+    page = await client.get("/", params={"celebrate": "1"})
+    assert "prize-modal" not in page.text and CODE not in page.text

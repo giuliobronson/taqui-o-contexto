@@ -1,10 +1,14 @@
 {% extends "core/base.html" %}
 
+{% block head %}<script src="{{ url_for('static', path='js/coupon.js') }}" defer></script>{% endblock %}
+
 {% block content %}
 <section class="card">
   <h1>Meu prêmio</h1>
   {% if prizes %}
-    {% for prize in prizes %}{% include "prizes/coupon.html" %}{% endfor %}
+    <div class="prize-list">
+      {% for prize in prizes %}{% include "prizes/coupon.html" %}{% endfor %}
+    </div>
   {% else %}
     <p class="muted">Você ainda não tem cupons. O primeiro a acertar a palavra ganha um.</p>
   {% endif %}
