@@ -241,14 +241,30 @@ h2 {
 @media (min-width: 1024px) {
   .game-layout {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "guess hints"
+      "ranking hints";
     align-items: start;
+  }
+
+  .guess-panel {
+    grid-area: guess;
+  }
+
+  .ranking-panel {
+    grid-area: ranking;
+  }
+
+  .hints-panel {
+    grid-area: hints;
   }
 }
 
 /* ---------- Guess form ---------- */
 
 .guess-form {
-  margin-bottom: 20px;
+  margin: 0;
 }
 
 .guess-row {
@@ -945,4 +961,90 @@ h2 {
 .admin-hints {
   margin-top: 16px;
   max-width: 640px;
+}
+
+/* ---------- Responsive game page ---------- */
+
+.game-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+}
+
+.game-tabs[hidden] {
+  display: none;
+}
+
+.game-tabs [role="tab"] {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.game-tabs [role="tab"][aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.game-tabs [role="tab"]:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tab-count {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1023px) {
+  .game-layout.has-tabs[data-active-tab="ranking"] > [data-panel="hints"],
+  .game-layout.has-tabs[data-active-tab="hints"] > [data-panel="ranking"] {
+    display: none;
+  }
+
+  /* The guess field stays at the top while the page scrolls. */
+  .guess-panel {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 6px 12px -6px rgb(90 70 40 / 0.25);
+  }
+}
+
+@media (min-width: 1024px) {
+  .game-tabs {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .container {
+    padding-top: 16px;
+  }
+
+  .game-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .secret-word {
+    font-size: 1.35rem;
+  }
+
+  .guess-row .btn {
+    padding: 0 14px;
+  }
 }

@@ -214,7 +214,7 @@
 
 ## Fase 9 · Qualidade e entrega
 
-- [ ] **T-33 · Responsividade**
+- [x] **T-33 · Responsividade**
   - Desktop: ranking e mural em duas colunas. Tablet: colunas estreitas ou mural abaixo. Celular: abas "Ranking" / "Dicas".
   - Painel do admin com tabelas que viram cartões no celular.
   - Áreas de toque ≥ 44 px; testar a 360 px de largura.

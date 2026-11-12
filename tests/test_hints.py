@@ -268,3 +268,12 @@ async def test_deleting_twice_or_unknown_is_404(
     assert (await client.delete(f"/hints/{hint.id}")).status_code == 200
     assert (await client.delete(f"/hints/{hint.id}")).status_code == 404
     assert (await client.delete("/hints/999999")).status_code == 404
+
+
+async def test_game_page_has_mobile_tabs(client, session, open_game, watcher, at_noon) -> None:
+    await post_hint(session, open_game, watcher.id, "Pense em espiões")
+    page = await client.get("/")
+    assert 'role="tablist"' in page.text
+    assert 'aria-controls="panel-ranking"' in page.text and 'id="panel-hints"' in page.text
+    assert '<span class="tab-count">1</span>' in page.text
+    assert "js/tabs.js" in page.text

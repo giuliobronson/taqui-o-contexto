@@ -1,6 +1,9 @@
 {% extends "core/base.html" %}
 
-{% block head %}<script src="{{ url_for('static', path='js/coupon.js') }}" defer></script>{% endblock %}
+{% block head %}
+<script src="{{ url_for('static', path='js/coupon.js') }}" defer></script>
+<script src="{{ url_for('static', path='js/tabs.js') }}" defer></script>
+{% endblock %}
 
 {% block content %}
 {% if not game %}
@@ -57,9 +60,19 @@
     </section>
   {% endif %}
 
-  <div class="game-layout">
-    <section class="panel" aria-labelledby="ranking-title">
+  {# Grid: guess field, tabs (phones and tablets only, static/js/tabs.js), ranking, hints.
+     Desktop: guess field above the ranking, hints on the right. #}
+  <div class="game-layout" data-active-tab="ranking">
+    <section class="panel guess-panel" aria-label="Palpite">
       {% include "guesses/guess_form.html" %}
+    </section>
+
+    <div class="game-tabs" role="tablist" aria-label="Seções do jogo" hidden>
+      <button type="button" role="tab" id="tab-ranking" aria-controls="panel-ranking" aria-selected="true">Ranking</button>
+      <button type="button" role="tab" id="tab-hints" aria-controls="panel-hints" aria-selected="false" tabindex="-1">Dicas{% if page.hints %} <span class="tab-count">{{ page.hints | length }}</span>{% endif %}</button>
+    </div>
+
+    <section class="panel ranking-panel" id="panel-ranking" data-panel="ranking" aria-labelledby="ranking-title">
       <h2 id="ranking-title">Ranking</h2>
       <div id="ranking"
            {% if page.is_current %}
@@ -71,7 +84,7 @@
       </div>
     </section>
 
-    <aside class="panel" aria-labelledby="hints-title">
+    <aside class="panel hints-panel" id="panel-hints" data-panel="hints" aria-labelledby="hints-title">
       <h2 id="hints-title">Mural de dicas</h2>
       {% include "hints/hint_form.html" %}
       <div id="hints"
