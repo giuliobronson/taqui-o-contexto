@@ -1,0 +1,22 @@
+{# Hint list, newest first (PRD RF-4). Polled by HTMX every 30 s. #}
+{% if page.hints %}
+  <ul class="hints">
+    {% for hint in page.hints %}
+      <li class="hint">
+        <header class="hint-meta">
+          {% if hint.author_avatar %}
+            <img class="avatar" src="{{ hint.author_avatar }}" alt="" referrerpolicy="no-referrer">
+          {% endif %}
+          <strong>{{ hint.author_name }}</strong>
+          <time class="muted small" datetime="{{ hint.created_at.isoformat() }}">{{ hint.created_at | time_ago(page.now) }}</time>
+        </header>
+        <p class="hint-body">{{ hint.body }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="muted">
+    {% if game and game.status == "finished" %}Nenhuma dica neste jogo.
+    {% else %}As dicas dos observadores aparecem aqui.{% endif %}
+  </p>
+{% endif %}

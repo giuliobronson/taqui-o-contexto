@@ -1,0 +1,24 @@
+{# "Deixar uma dica" (PRD RF-4): only watchers of an open game. Swapped after each post. #}
+<div id="hint-form" class="hint-form">
+  {% if result %}
+    {% set messages = {
+      "posted": "Dica publicada.",
+      "empty": "Escreva a dica antes de publicar.",
+      "too_long": "A dica pode ter até 280 caracteres.",
+      "reveals_secret": "A dica não pode conter a palavra secreta.",
+      "game_not_open": "Só é possível deixar dicas com o jogo aberto.",
+    } %}
+    <p class="message message-hint-{{ result.outcome }}" role="status">{{ messages[result.outcome] }}</p>
+  {% endif %}
+  {% if page.can_hint %}
+    <form hx-post="/hints" hx-target="#hint-form" hx-swap="outerHTML">
+      <label for="hint-body" class="field-label">Deixar uma dica</label>
+      <textarea id="hint-body" name="body" rows="3" maxlength="280" required
+                placeholder="Ajude os jogadores sem dizer a palavra">{{ result.body if result else "" }}</textarea>
+      <div class="hint-actions">
+        <span class="muted small">Até 280 caracteres. Não use a palavra secreta.</span>
+        <button class="btn" type="submit">Publicar</button>
+      </div>
+    </form>
+  {% endif %}
+</div>

@@ -17,6 +17,7 @@ from app.games.service import (
 )
 from app.guesses.models import Guess
 from app.guesses.service import RankingRow, ranking, time_until_next_day, todays_guess
+from app.hints.service import HintView, list_hints
 
 
 class FormState(enum.StrEnum):
@@ -35,6 +36,7 @@ class FormState(enum.StrEnum):
 class GamePage:
     user: Profile | None
     game: Game | None
+    now: datetime
     is_current: bool = False
     member: GameMember | None = None
     form_state: FormState = FormState.VISITOR
@@ -43,6 +45,7 @@ class GamePage:
     rows: list[RankingRow] = field(default_factory=list)
     winner: Profile | None = None
     next_game: Game | None = None
+    hints: list[HintView] = field(default_factory=list)
 
     @property
     def can_see_secret(self) -> bool:
@@ -53,6 +56,15 @@ class GamePage:
         if self.user is not None and self.user.is_admin:
             return True
         return self.member is not None and self.member.role == MemberRole.WATCHER
+
+    @property
+    def can_hint(self) -> bool:
+        """Only watchers write hints, and only while the game is open (PRD RF-4)."""
+        return self.form_state == FormState.WATCHER and self.game_status == GameStatus.OPEN
+
+    @property
+    def game_status(self) -> str:
+        return self.game.status if self.game else "none"
 
     @property
     def total(self) -> int:
@@ -94,7 +106,7 @@ async def build_game_page(
         if game is None:
             game = await last_finished_game(session)
 
-    page = GamePage(user=user, game=game, is_current=is_current)
+    page = GamePage(user=user, game=game, now=now, is_current=is_current)
     if game is None or game.status == GameStatus.FINISHED:
         page.next_game = await next_scheduled_game(session)
     if game is None:
@@ -109,6 +121,7 @@ async def build_game_page(
     if page.form_state == FormState.WAITING:
         page.wait = time_until_next_day(now)
     page.rows = await ranking(session, game, user.id if user else None)
+    page.hints = await list_hints(session, game)
     if game.winner_id is not None:
         page.winner = await session.get(Profile, game.winner_id)
     return page

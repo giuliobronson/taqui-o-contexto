@@ -161,7 +161,7 @@
 
 ## Fase 6 · Mural de dicas
 
-- [ ] **T-24 · Publicar e listar dicas**
+- [x] **T-24 · Publicar e listar dicas**
   - `GET /hints` (parcial HTMX, mais recentes primeiro, com polling).
   - `POST /hints` (watcher, jogo aberto): limite de 280 caracteres; rejeitar textos que contenham a palavra secreta (sem acentos e sem diferença de maiúsculas).
   - **dep:** T-14, T-16

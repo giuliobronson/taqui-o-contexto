@@ -65,7 +65,15 @@
 
     <aside class="panel" aria-labelledby="hints-title">
       <h2 id="hints-title">Mural de dicas</h2>
-      <p class="muted">As dicas dos observadores aparecem aqui.</p>
+      {% include "hints/hint_form.html" %}
+      <div id="hints"
+           {% if page.is_current %}
+           hx-get="/hints"
+           hx-trigger="every 30s"
+           hx-swap="innerHTML"
+           {% endif %}>
+        {% include "hints/board.html" %}
+      </div>
     </aside>
   </div>
 {% endif %}

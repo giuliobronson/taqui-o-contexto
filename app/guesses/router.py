@@ -44,6 +44,6 @@ async def get_ranking(
     response = templates.TemplateResponse(request, "guesses/ranking.html", page.as_context())
     # The page was rendered for another state (game unlocked, finished, new game):
     # ask HTMX to reload it so the form and banners match.
-    if status is not None and status != (page.game.status if page.game else "none"):
+    if status is not None and status != page.game_status:
         response.headers["HX-Refresh"] = "true"
     return response
