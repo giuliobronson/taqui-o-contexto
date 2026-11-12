@@ -1,0 +1,6 @@
+# Text sent to the embedding model instead of the word itself.
+# Format:  word | text
+# Use it when the bare word is ambiguous: "spy family" alone reads as "spy",
+# while the official title places it next to anime and mangá.
+
+spy family | Spy x Family

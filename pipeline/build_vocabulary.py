@@ -250,9 +250,21 @@ def embed_batch(http: httpx.Client, api_key: str, texts: list[str]) -> list[np.n
     sys.exit("A OpenAI continuou recusando as requisições; tente mais tarde.")
 
 
+def read_embedding_texts(path: Path) -> dict[str, str]:
+    """'word | text' lines → {word: text sent to the model in place of the word}."""
+    texts: dict[str, str] = {}
+    for line in read_list(path):
+        word, _, text = line.partition("|")
+        texts[normalize(word)] = text.strip()
+    return texts
+
+
 def embed_words(words: list[str], model_version: str, batch_size: int) -> dict[str, np.ndarray]:
+    """Vectors for `words`. The cache is keyed by the text actually embedded."""
+    overrides = read_embedding_texts(DATA / "embedding_texts.txt")
+    text_of = {w: overrides.get(w, w) for w in words}
     cache = load_cached_embeddings(model_version)
-    missing = [w for w in words if w not in cache]
+    missing = list(dict.fromkeys(t for t in text_of.values() if t not in cache))
     print(f"Embeddings: {len(words) - len(missing)} em cache, {len(missing)} a gerar.")
     if missing:
         api_key = os.environ.get("OPENAI_API_KEY") or _env_file_value("OPENAI_API_KEY")
@@ -261,11 +273,11 @@ def embed_words(words: list[str], model_version: str, batch_size: int) -> dict[s
         with httpx.Client(timeout=120) as http:
             for start in range(0, len(missing), batch_size):
                 batch = missing[start : start + batch_size]
-                for word, vector in zip(batch, embed_batch(http, api_key, batch), strict=True):
-                    cache[word] = vector
+                for text, vector in zip(batch, embed_batch(http, api_key, batch), strict=True):
+                    cache[text] = vector
                 save_cached_embeddings(model_version, cache)  # progress survives a crash
                 print(f"  {min(start + batch_size, len(missing))}/{len(missing)}")
-    return {w: cache[w] for w in words}
+    return {w: cache[text_of[w]] for w in words}
 
 
 def _env_file_value(name: str) -> str | None:
