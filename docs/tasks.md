@@ -68,7 +68,7 @@
   - Lista de extras (`pipeline/data/extra_words.txt`) para palavras e expressões fora dos filtros, com variações ("spy x family" → "spy family").
   - **dep:** T-09
 
-- [ ] **T-11 · `pipeline/build_vocabulary.py`**
+- [x] **T-11 · `pipeline/build_vocabulary.py`**
   - Monta a lista de palavras com o `wordfreq`, aplica os filtros, gera os vetores na API da OpenAI em lotes e grava em `vocabulary`.
   - Migration trocando `vocabulary.embedding` para `halfvec(1024)`.
   - Parâmetros: `model_version`, tamanho máximo do vocabulário. Precisa de `OPENAI_API_KEY` no `.env`.
