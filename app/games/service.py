@@ -4,9 +4,11 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import select, text, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.games.models import ACTIVE_STATUSES, Game, GameStatus
+from app.auth.models import Profile
+from app.games.models import ACTIVE_STATUSES, Game, GameMember, GameStatus, MemberRole
 
 # Arbitrary constant used with pg_advisory_xact_lock so that concurrent requests
 # never run the lazy transitions at the same time.
@@ -95,6 +97,28 @@ async def finish_game(
     finished = result.scalar_one_or_none() is not None
     await session.commit()
     return finished
+
+
+async def join_active_game(
+    session: AsyncSession, profile: Profile, now: datetime
+) -> GameMember | None:
+    """Associate a user with the active game as a player, if not associated yet.
+
+    Admins are never associated (they know the secret word). Returns the
+    membership, or None when there is no active game or the user is an admin.
+    """
+    if profile.is_admin:
+        return None
+    game = await current_game(session, now)
+    if game is None:
+        return None
+    await session.execute(
+        insert(GameMember)
+        .values(game_id=game.id, user_id=profile.id, role=MemberRole.PLAYER)
+        .on_conflict_do_nothing(index_elements=["game_id", "user_id"])
+    )
+    await session.commit()
+    return await session.get(GameMember, (game.id, profile.id))
 
 
 async def last_finished_game(session: AsyncSession) -> Game | None:

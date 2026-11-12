@@ -95,7 +95,7 @@
   - **dep:** T-13, T-16
   - **Pronto quando:** testes cobrem visitante, player, watcher e admin em cada guarda.
 
-- [ ] **T-15 · Associação ao jogo ativo**
+- [x] **T-15 · Associação ao jogo ativo**
   - No callback do login e ao abrir `/`, criar `game_members` como `player` no jogo ativo, se ainda não existir.
   - Não associar admins nem criar nada sem jogo ativo.
   - **dep:** T-13, T-16
