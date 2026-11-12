@@ -10,11 +10,14 @@
     } %}
     <p class="message message-hint-{{ result.outcome }}" role="status">{{ messages[result.outcome] }}</p>
   {% endif %}
+  {% if rate_limited %}
+    <p class="message message-hint-game_not_open" role="status">Muitas dicas seguidas. Espere um minuto e tente de novo.</p>
+  {% endif %}
   {% if page.can_hint %}
     <form hx-post="/hints" hx-target="#hint-form" hx-swap="outerHTML">
       <label for="hint-body" class="field-label">Deixar uma dica</label>
       <textarea id="hint-body" name="body" rows="3" maxlength="280" required
-                placeholder="Ajude os jogadores sem dizer a palavra">{{ result.body if result else "" }}</textarea>
+                placeholder="Ajude os jogadores sem dizer a palavra">{{ result.body if result else (draft or "") }}</textarea>
       <div class="hint-actions">
         <span class="muted small">Até 280 caracteres. Não use a palavra secreta.</span>
         <button class="btn" type="submit">Publicar</button>

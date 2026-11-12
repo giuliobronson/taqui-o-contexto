@@ -4,6 +4,7 @@ from fastapi import APIRouter, Form, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
 import app.hints.presentation  # noqa: F401  (registers the template filters)
+from app.core.rate_limit import HINTS_PER_IP, HINTS_PER_USER, allow
 from app.core.security import CurrentUser, OptionalUser
 from app.core.templates import templates
 from app.games.dependencies import Now, Session, WatcherMembership
@@ -31,6 +32,14 @@ async def create_hint(
     # so the watcher gets a friendly message and keeps the text.
     body: Annotated[str, Form(max_length=2000)] = "",
 ) -> HTMLResponse:
+    if not allow(request, membership.user.id, HINTS_PER_USER, HINTS_PER_IP):
+        page = await build_game_page(session, membership.user, now)
+        return templates.TemplateResponse(
+            request,
+            "hints/hint_response.html",
+            {**page.as_context(), "result": None, "rate_limited": True, "draft": body},
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
     result = await post_hint(session, membership.game, membership.user.id, body)
     page = await build_game_page(session, membership.user, now)
     return templates.TemplateResponse(

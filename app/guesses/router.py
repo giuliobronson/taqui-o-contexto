@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Form, Request, status
 from fastapi.responses import HTMLResponse
 
 import app.guesses.presentation  # noqa: F401  (registers the template filters)
+from app.core.rate_limit import GUESSES_PER_IP, GUESSES_PER_USER, allow
 from app.core.security import CurrentUser, OptionalUser
 from app.core.templates import templates
 from app.games.dependencies import Now, Session
@@ -21,6 +22,14 @@ async def post_guess(
     now: Now,
     word: Annotated[str, Form(max_length=60)] = "",
 ) -> HTMLResponse:
+    if not allow(request, user.id, GUESSES_PER_USER, GUESSES_PER_IP):
+        page = await build_game_page(session, user, now)
+        return templates.TemplateResponse(
+            request,
+            "guesses/guess_response.html",
+            {**page.as_context(), "result": None, "rate_limited": True},
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
     page = await build_game_page(session, user, now)
     result = None
     # Role, game state and daily limit are all checked server-side here.

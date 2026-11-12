@@ -220,7 +220,7 @@
   - Áreas de toque ≥ 44 px; testar a 360 px de largura.
   - **dep:** T-21, T-24, T-27, T-28
 
-- [ ] **T-34 · Rate limit**
+- [x] **T-34 · Rate limit**
   - Limitar `POST /guesses` e `POST /hints` por usuário e por IP (por exemplo, com slowapi).
   - **dep:** T-20, T-24
 

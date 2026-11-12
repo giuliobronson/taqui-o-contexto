@@ -15,6 +15,10 @@
     <p class="message message-{{ result.outcome }}" role="status">{{ messages[result.outcome] }}</p>
   {% endif %}
 
+  {% if rate_limited %}
+    <p class="message message-rate_limited" role="status">Muitas tentativas seguidas. Espere um minuto e tente de novo.</p>
+  {% endif %}
+
   {% set state = page.form_state %}
   {% if state == "ready" %}
     <form hx-post="/guesses" hx-target="#guess-form" hx-swap="outerHTML" class="guess-row">

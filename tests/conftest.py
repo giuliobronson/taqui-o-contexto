@@ -22,6 +22,14 @@ from app.core.db import get_session
 from app.games.models import Game, GameStatus
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    from app.core.rate_limit import ALL_LIMITERS
+
+    for limiter in ALL_LIMITERS:
+        limiter.reset()
+
+
 @pytest.fixture(scope="session")
 async def engine():
     engine = create_async_engine(get_settings().database_url)

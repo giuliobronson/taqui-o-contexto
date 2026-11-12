@@ -309,6 +309,7 @@ h2 {
 
 .message-unknown_word,
 .message-repeated_word,
+.message-rate_limited,
 .message-empty {
   background: hsl(40, 70%, 88%);
   color: hsl(35, 45%, 25%);
@@ -1046,5 +1047,32 @@ h2 {
 
   .guess-row .btn {
     padding: 0 14px;
+  }
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 10;
+  max-width: calc(100% - 2 * var(--gutter));
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--surface);
+  box-shadow: var(--shadow);
+  transform: translate(-50%, 200%);
+  transition: transform 0.25s ease;
+}
+
+.toast.is-visible {
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: none;
   }
 }
