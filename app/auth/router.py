@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Annotated
 
@@ -19,6 +20,8 @@ from app.core.config import get_settings
 from app.core.db import get_session
 from app.core.security import get_token_verifier
 from app.games.service import join_active_game
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -70,12 +73,14 @@ async def callback(
     failure = RedirectResponse("/?login=erro", status_code=302)
     failure.delete_cookie(PKCE_COOKIE, path="/auth")
     if not code or not code_verifier:
+        logger.warning("Login callback without %s.", "code" if not code else "PKCE cookie")
         return failure
 
     try:
         auth_session = await client.exchange_code(code, code_verifier)
         claims = await verifier.verify(auth_session.access_token)
-    except (AuthError, InvalidToken):
+    except (AuthError, InvalidToken) as exc:
+        logger.warning("Login failed: %s: %s", type(exc).__name__, exc)
         return failure
 
     profile = await ensure_profile(session, claims)

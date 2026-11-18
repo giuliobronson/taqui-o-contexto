@@ -77,7 +77,9 @@ class SupabaseAuthClient:
         except httpx.HTTPError as exc:
             raise AuthError(str(exc)) from exc
         if response.status_code != 200:
-            raise AuthError(f"{grant_type} failed with HTTP {response.status_code}")
+            raise AuthError(
+                f"{grant_type} failed with HTTP {response.status_code}: {response.text[:200]}"
+            )
         data = response.json()
         return AuthSession(
             access_token=data["access_token"],

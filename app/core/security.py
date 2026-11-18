@@ -1,5 +1,6 @@
 """Request authentication: who is calling, and are they allowed to."""
 
+import logging
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
@@ -10,6 +11,8 @@ from app.auth.service import ensure_profile
 from app.auth.session import access_token_from
 from app.auth.tokens import InvalidToken, TokenVerifier
 from app.core.db import get_session
+
+logger = logging.getLogger(__name__)
 
 
 def get_token_verifier(request: Request) -> TokenVerifier:
@@ -27,7 +30,8 @@ async def current_user(
         return None
     try:
         claims = await verifier.verify(token)
-    except InvalidToken:
+    except InvalidToken as exc:
+        logger.warning("Ignoring session token: %s", exc)
         return None
     return await ensure_profile(session, claims)
 
