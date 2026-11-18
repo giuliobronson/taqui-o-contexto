@@ -12,6 +12,7 @@ from app.auth.session import RefreshSessionMiddleware
 from app.auth.supabase import SupabaseAuthClient
 from app.auth.tokens import TokenVerifier
 from app.core.config import get_settings
+from app.core.pages import router as pages_router
 from app.games.router import router as games_router
 from app.guesses.router import router as guesses_router
 from app.hints.router import router as hints_router
@@ -43,6 +44,7 @@ for router in (
     hints_router,
     prizes_router,
     admin_router,
+    pages_router,
 ):
     app.include_router(router)
 

@@ -1,0 +1,46 @@
+{% extends "core/base.html" %}
+
+{% block title %}Privacidade · Taqui o Contexto{% endblock %}
+
+{% block content %}
+<article class="card prose">
+  <h1>Política de privacidade</h1>
+  <p class="muted small">Atualizada em 18/11/2026</p>
+
+  <p>O Taqui o Contexto é um jogo coletivo de adivinhar palavras. Esta página explica quais dados
+  guardamos, para quê e como pedir a exclusão.</p>
+
+  <h2>O que coletamos</h2>
+  <ul>
+    <li><strong>Da sua conta Google</strong>, quando você entra: nome, e-mail e foto de perfil.
+      Não pedimos acesso a mais nada da sua conta.</li>
+    <li><strong>Do jogo</strong>: os palpites que você envia, as dicas que escreve, o seu papel em
+      cada jogo (jogador ou observador) e, se você vencer, o cupom do prêmio.</li>
+  </ul>
+
+  <h2>Para que usamos</h2>
+  <ul>
+    <li>Identificar você no jogo e limitar a um palpite por dia.</li>
+    <li>Mostrar o ranking e o mural de dicas. Seu nome e sua foto aparecem ao lado das suas
+      dicas e, se você vencer, como vencedor do jogo. Seu e-mail nunca é exibido para outros
+      jogadores.</li>
+    <li>Entregar o cupom ao vencedor. Só o vencedor e os administradores veem o código.</li>
+  </ul>
+
+  <h2>Cookies e armazenamento</h2>
+  <p>Usamos apenas cookies de sessão, necessários para manter você conectado. Não usamos
+  cookies de publicidade nem de rastreamento. O navegador também guarda se você já
+  "destacou" o seu cupom. Para limitar abusos, o endereço IP de cada requisição é usado
+  por alguns minutos, só em memória, e não é gravado.</p>
+
+  <h2>Onde ficam os dados</h2>
+  <p>O login e o banco de dados ficam no Supabase, e o site roda no Google Cloud. Não vendemos
+  nem compartilhamos seus dados com terceiros para outros fins.</p>
+
+  <h2>Seus direitos</h2>
+  <p>Você pode pedir a qualquer momento uma cópia ou a exclusão dos seus dados, como prevê a
+  LGPD. Fale com os administradores do jogo pelo e-mail de suporte que aparece na tela de
+  login do Google. Também é possível remover o acesso do app na sua
+  <a href="https://myaccount.google.com/connections">conta Google</a>.</p>
+</article>
+{% endblock %}
