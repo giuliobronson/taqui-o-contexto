@@ -1,0 +1,4 @@
+<nav class="admin-tabs" aria-label="Painel do admin">
+  <a href="/admin" {% if admin_tab == "games" %}aria-current="page"{% endif %}>Jogos</a>
+  <a href="/admin/users" {% if admin_tab == "users" %}aria-current="page"{% endif %}>Usuários</a>
+</nav>

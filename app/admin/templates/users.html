@@ -1,0 +1,73 @@
+{% extends "core/base.html" %}
+{% block title %}Admin · Taqui o Contexto{% endblock %}
+
+{% block content %}
+{% set admin_tab = "users" %}{% include "admin/_nav.html" %}
+<section class="admin-head">
+  <h1>Usuários</h1>
+</section>
+
+{% if notice %}<p class="message message-ok" role="status">{{ notice }}</p>{% endif %}
+
+<form method="get" class="search-row" role="search">
+  <label for="q" class="sr-only">Buscar por nome ou e-mail</label>
+  <input id="q" name="q" type="search" value="{{ q }}" maxlength="100" placeholder="Buscar por nome ou e-mail">
+  <button class="btn btn-ghost" type="submit">Buscar</button>
+</form>
+
+<p class="muted small">
+  Admins acompanham os jogos e veem a palavra secreta, mas não jogam. Quem deixa de ser admin
+  durante um jogo volta a ele como watcher, porque já viu a palavra.
+</p>
+
+{% if users %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th scope="col">Nome</th>
+        <th scope="col">E-mail</th>
+        <th scope="col">Papel</th>
+        <th scope="col">Jogo atual</th>
+        <th scope="col"><span class="sr-only">Ações</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in users %}
+        {% set p = row.profile %}
+        <tr>
+          <td data-label="Nome">
+            <span class="member-name">
+              {% if p.avatar_url %}<img class="avatar" src="{{ p.avatar_url }}" alt="" referrerpolicy="no-referrer">{% endif %}
+              {{ p.display_name }}{% if p.id == user.id %} <span class="muted small">(você)</span>{% endif %}
+            </span>
+          </td>
+          <td data-label="E-mail">{{ p.email }}</td>
+          <td data-label="Papel">
+            {% if p.is_admin %}<span class="chip chip-admin">Admin</span>{% else %}<span class="chip">Usuário</span>{% endif %}
+          </td>
+          <td data-label="Jogo atual">
+            {% if p.is_admin %}—
+            {% elif row.role_in_active_game == "watcher" %}Watcher
+            {% elif row.role_in_active_game == "player" %}Player
+            {% else %}<span class="muted">não entrou</span>{% endif %}
+          </td>
+          <td data-label="Ações">
+            {% if p.id == user.id %}
+            {% elif p.is_admin and row.from_config %}
+              <span class="muted small">Definido em ADMIN_EMAILS</span>
+            {% elif p.is_admin %}
+              <button class="btn btn-ghost" hx-post="/admin/users/{{ p.id }}" hx-vals='{"admin": "false"}'
+                      hx-confirm="Remover o papel de admin de {{ p.display_name }}?">Remover admin</button>
+            {% else %}
+              <button class="btn btn-ghost" hx-post="/admin/users/{{ p.id }}" hx-vals='{"admin": "true"}'
+                      hx-confirm="Tornar {{ p.display_name }} admin? Essa pessoa vai ver as palavras secretas e não poderá mais jogar.">Tornar admin</button>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <section class="card empty-state"><p>Nenhum usuário encontrado.</p></section>
+{% endif %}
+{% endblock %}

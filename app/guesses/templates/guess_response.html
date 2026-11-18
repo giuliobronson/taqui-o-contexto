@@ -1,0 +1,5 @@
+{# Response to POST /guesses: the new form plus the ranking, swapped out of band. #}
+{% include "guesses/guess_form.html" %}
+<div id="ranking" hx-swap-oob="innerHTML">
+  {% include "guesses/ranking.html" %}
+</div>

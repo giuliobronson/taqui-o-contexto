@@ -1,0 +1,5 @@
+{# Response to POST /hints: the form plus the board, swapped out of band. #}
+{% include "hints/hint_form.html" %}
+<div id="hints" hx-swap-oob="innerHTML">
+  {% include "hints/board.html" %}
+</div>

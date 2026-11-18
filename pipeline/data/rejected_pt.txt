@@ -1,0 +1,9 @@
+# Words kept out of the vocabulary because they are noise: rare or foreign
+# forms, fragments, or wrong lemmas that showed up near a secret word.
+anina
+espigo
+espoja
+opie
+spi
+tales
+tipa

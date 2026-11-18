@@ -1,0 +1,17 @@
+{# Victory modal for the winner (PRD RF-5). Opened automatically right after the
+   winning guess (?celebrate=1) and by the "Meu prêmio" button. #}
+<dialog id="prize-modal" class="prize-modal" aria-labelledby="prize-modal-title"
+        {% if celebrate %}data-autoshow{% endif %}>
+  <form method="dialog" class="prize-modal-close">
+    <button class="icon-button" aria-label="Fechar">✕</button>
+  </form>
+  <p class="prize-modal-emoji" aria-hidden="true">🎉</p>
+  <h2 id="prize-modal-title">Parabéns, você acertou!</h2>
+  <p>A palavra era <strong>{{ game.secret_word }}</strong>.</p>
+  {% if page.prize %}
+    {% with prize = page.prize %}{% include "prizes/coupon.html" %}{% endwith %}
+  {% else %}
+    <p class="muted">Seu cupom ainda vai ser cadastrado pelo administrador. Ele aparecerá aqui e em
+      <a href="/prizes/me">Meu prêmio</a>.</p>
+  {% endif %}
+</dialog>
