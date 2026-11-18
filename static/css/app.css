@@ -125,6 +125,33 @@ a {
   }
 }
 
+/* ---------- Footer and text pages ---------- */
+
+.site-footer {
+  padding-top: 0;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.site-footer a {
+  color: var(--text-muted);
+}
+
+.prose {
+  max-width: 720px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.prose h2 {
+  margin-top: 1.5em;
+  font-size: 1.15rem;
+}
+
+.prose ul {
+  padding-left: 1.25em;
+}
+
 /* ---------- Shared helpers ---------- */
 
 .muted {
