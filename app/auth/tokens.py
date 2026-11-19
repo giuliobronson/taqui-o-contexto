@@ -22,7 +22,7 @@ class TokenVerifier:
         self._issuer = issuer
         self._audience = audience
         self._keys: dict[str, jwt.PyJWK] = {}
-        self._fetched_at = 0.0
+        self._fetched_at: float | None = None  # monotonic time of the last fetch
 
     async def verify(self, token: str) -> dict[str, Any]:
         """Return the token's claims, or raise InvalidToken."""
@@ -47,9 +47,11 @@ class TokenVerifier:
             raise InvalidToken(str(exc)) from exc
 
     async def _key(self, kid: str | None) -> jwt.PyJWK | None:
-        if (
-            kid not in self._keys
-            and time.monotonic() - self._fetched_at > _REFETCH_INTERVAL_SECONDS
+        # time.monotonic() starts near zero on a fresh container, so "never fetched"
+        # must not be modelled as a fetch at time 0.
+        if kid not in self._keys and (
+            self._fetched_at is None
+            or time.monotonic() - self._fetched_at > _REFETCH_INTERVAL_SECONDS
         ):
             jwks = await self._fetch_jwks()
             self._keys = {
